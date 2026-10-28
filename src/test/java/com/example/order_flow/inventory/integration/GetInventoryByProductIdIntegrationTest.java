@@ -4,8 +4,6 @@ import com.example.order_flow.dto.inventory.InventoryDetailResponseDto;
 import com.example.order_flow.exceptions.InventoryNotFoundException;
 import com.example.order_flow.exceptions.InventoryNotFoundForProductException;
 import com.example.order_flow.exceptions.ProductNotFoundException;
-import com.example.order_flow.repository.InventoryRepository;
-import com.example.order_flow.repository.ProductRepository;
 import com.example.order_flow.service.InventoryService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,10 +12,6 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 public class GetInventoryByProductIdIntegrationTest {
-    @Autowired
-    private ProductRepository productRepository;
-    @Autowired
-    private InventoryRepository inventoryRepository;
     @Autowired
     private InventoryService service;
 
@@ -41,7 +35,7 @@ public class GetInventoryByProductIdIntegrationTest {
 
     @Test //product id is valid but inventory not found for this product id
     public void inventoryNotFoundTest(){
-        Integer pid = 1003;
+        Integer pid = 1005;
         assertThrows(InventoryNotFoundForProductException.class,
                 () -> service.getInventoryByProductId(pid));
     }

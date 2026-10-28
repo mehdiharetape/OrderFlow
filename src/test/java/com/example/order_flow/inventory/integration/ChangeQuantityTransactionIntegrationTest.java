@@ -1,9 +1,12 @@
 package com.example.order_flow.inventory.integration;
 
 import com.example.order_flow.dto.inventory.ChangeTotalQuantityDto;
+import com.example.order_flow.dto.inventory.ReservationChangeDto;
+import com.example.order_flow.dto.movement.CreateMovementDto;
 import com.example.order_flow.entity.InventoryMovement;
 import com.example.order_flow.repository.InventoryMovementRepository;
 import com.example.order_flow.repository.InventoryRepository;
+import com.example.order_flow.service.InventoryMovementService;
 import com.example.order_flow.service.InventoryService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,30 +16,29 @@ import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.verify;
 
 @SpringBootTest
 public class ChangeQuantityTransactionIntegrationTest {
+    @MockitoSpyBean
+    private InventoryMovementService movementService;
     @Autowired
     private InventoryService service;
-    @MockitoSpyBean
-    private InventoryMovementRepository movementRepository;
     @Autowired
-    private InventoryRepository inventoryRepository;
+    private InventoryMovementRepository movementRepository;
 
     @Test
     public void changeTotalQuantityShouldRollbackWhenMovementSaveFails(){
-        doThrow(new RuntimeException("Simulated Exception")).
-                when(movementRepository).save(any(InventoryMovement.class));
+        doThrow(new RuntimeException("Simulated Exception"))
+                .when(movementService).createInventoryMovement(
+                        any(CreateMovementDto.class));
 
         ChangeTotalQuantityDto dto = new ChangeTotalQuantityDto();
-        dto.setAmount(-5);
+        dto.setAmount(2);
 
-        RuntimeException exception = assertThrows(RuntimeException.class,
-                () -> service.changeTotalQuantity(2009, dto));
+        assertThrows(RuntimeException.class,
+                () -> service.changeTotalQuantity(1004, dto));
 
-        assertEquals("Simulated Exception", exception.getMessage());
 
-        verify(movementRepository).save(any(InventoryMovement.class));
+        assertEquals(1, movementRepository.countByProductId(1004));
     }
 }

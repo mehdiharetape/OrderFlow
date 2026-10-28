@@ -14,8 +14,6 @@ import static org.junit.jupiter.api.Assertions.*;
 @SpringBootTest
 public class GetEmptyInventoryListIntegrationTest {
     @Autowired
-    private InventoryRepository repository;
-    @Autowired
     private InventoryService service;
 
     @Test

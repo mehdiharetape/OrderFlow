@@ -13,8 +13,6 @@ import static org.junit.jupiter.api.Assertions.*;
 @SpringBootTest
 public class GetAllInventoriesIntegrationTests {
     @Autowired
-    private InventoryRepository repository;
-    @Autowired
     private InventoryService service;
 
     @Test
@@ -23,6 +21,6 @@ public class GetAllInventoriesIntegrationTests {
                 = service.getAllInventories();
 
         assertNotNull(result);
-        assertEquals(2004, result.get(0).getInventoryId());
+        assertEquals(2008, result.get(0).getInventoryId());
     }
 }

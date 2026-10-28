@@ -1,5 +1,6 @@
 package com.example.order_flow.service;
 
+import com.example.order_flow.dto.movement.CreateMovementDto;
 import com.example.order_flow.dto.movement.InventoryMovementResponseDto;
 import com.example.order_flow.entity.InventoryMovement;
 import com.example.order_flow.mapper.InventoryMovementMapper;
@@ -18,6 +19,15 @@ public class InventoryMovementService {
     @Autowired
     public InventoryMovementService(InventoryMovementRepository movementRepository){
         this.movementRepository = movementRepository;
+    }
+
+    //create inventory movement
+    public Integer createInventoryMovement(CreateMovementDto dto)
+    {
+        ProductValidation.productIdValidation(dto.getProductId());
+
+         return movementRepository.save(InventoryMovementMapper
+                .createInventoryMovement(dto)).getInventoryMovementId();
     }
 
     //get all movement

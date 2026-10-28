@@ -1,13 +1,13 @@
 package com.example.order_flow.inventory.unit;
 
 import com.example.order_flow.dto.inventory.ChangeTotalQuantityDto;
+import com.example.order_flow.dto.movement.CreateMovementDto;
 import com.example.order_flow.entity.Inventory;
-import com.example.order_flow.entity.InventoryMovement;
 import com.example.order_flow.exceptions.IllegalOrNullArgumentException;
 import com.example.order_flow.exceptions.InvalidQuantityChangeException;
-import com.example.order_flow.exceptions.InventoryNotFoundException;
-import com.example.order_flow.repository.InventoryMovementRepository;
+import com.example.order_flow.exceptions.InventoryNotFoundForProductException;
 import com.example.order_flow.repository.InventoryRepository;
+import com.example.order_flow.service.InventoryMovementService;
 import com.example.order_flow.service.InventoryService;
 import com.example.order_flow.utils.InventoryResult;
 import org.junit.jupiter.api.Test;
@@ -28,66 +28,62 @@ public class ChangeInventoryTotalQuantityUnitTests {
     @Mock
     private InventoryRepository inventoryRepository;
     @Mock
-    private InventoryMovementRepository movementRepository;
+    private InventoryMovementService movementService;
     @InjectMocks
     private InventoryService service;
 
     @Test
     public void changeInventoryTotalQuantityHappyFlow(){
-        Integer id = 2008;
+        Integer pid = 1001;
         Integer amount = -5;
 
         ChangeTotalQuantityDto dto = new ChangeTotalQuantityDto();
         dto.setAmount(amount);
 
-        Inventory inventory = new Inventory(id);
-        inventory.setProductId(1002);
+        Inventory inventory = new Inventory();
+        inventory.setInventoryId(2001);
+        inventory.setProductId(pid);
         inventory.setTotalQuantity(10);
         inventory.setReservedQuantity(3);
 
-        given(inventoryRepository.findById(id)).
+        given(inventoryRepository.findByProductId(pid)).
                 willReturn(Optional.of(inventory));
 
-        when(movementRepository.save(any(InventoryMovement.class)))
-                .thenAnswer(invocation ->{
-                    InventoryMovement saved = invocation.getArgument(0);
-                    saved.setInventoryMovementId(5001);
-                    return saved;
-                });
+        when(movementService.createInventoryMovement(any(CreateMovementDto.class)))
+                .thenReturn(5001);
 
         //act
-        InventoryResult result = service.changeTotalQuantity(id, dto);
+        InventoryResult result = service.changeTotalQuantity(pid, dto);
 
-        assertEquals(id, result.inventory());
+        assertEquals(2001 , result.inventory());
         assertEquals(5001, result.inventoryMovement());
 
 
-        verify(inventoryRepository).changeTotalQuantity(id, 5);
-        verify(movementRepository).save(any(InventoryMovement.class));
+        verify(inventoryRepository).changeTotalQuantity(2001, 5);
     }
 
     @Test //invalid amount
     public void InvalidChangeAmountTest(){
-        Integer id = 2008;
+        Integer pid = 1001;
         Integer amount = -8;
 
         ChangeTotalQuantityDto dto = new ChangeTotalQuantityDto();
         dto.setAmount(amount);
 
-        Inventory inventory = new Inventory(id);
-        inventory.setProductId(1002);
+        Inventory inventory = new Inventory();
+        inventory.setInventoryId(2001);
+        inventory.setProductId(pid);
         inventory.setTotalQuantity(10);
         inventory.setReservedQuantity(3);
 
-        given(inventoryRepository.findById(id)).
+        given(inventoryRepository.findByProductId(pid)).
                 willReturn(Optional.of(inventory));
 
         assertThrows(InvalidQuantityChangeException.class,
-                () -> service.changeTotalQuantity(id, dto));
+                () -> service.changeTotalQuantity(pid, dto));
 
 
         verify(inventoryRepository, never()).changeTotalQuantity(anyInt(), anyInt());
-        verify(movementRepository, never()).save(any(InventoryMovement.class));
     }
 
     @Test //null inventoryId
@@ -98,7 +94,7 @@ public class ChangeInventoryTotalQuantityUnitTests {
     }
 
     @Test //invalid inventoryId
-    public void invalidInventoryIdTest(){
+    public void invalidIProductIdTest(){
         ChangeTotalQuantityDto dto = new ChangeTotalQuantityDto();
 
         assertThrows(IllegalOrNullArgumentException.class,
@@ -106,11 +102,11 @@ public class ChangeInventoryTotalQuantityUnitTests {
     }
 
     @Test //inventory not found
-    public void inventoryNotFoundTest(){
-        given(inventoryRepository.findById(200000)).
+    public void inventoryNotFoundForThisProductTest(){
+        given(inventoryRepository.findByProductId(200000)).
                 willReturn(Optional.empty());
 
-        assertThrows(InventoryNotFoundException.class,
+        assertThrows(InventoryNotFoundForProductException.class,
                 () -> service.changeTotalQuantity(200000,
                         any(ChangeTotalQuantityDto.class)));
     }

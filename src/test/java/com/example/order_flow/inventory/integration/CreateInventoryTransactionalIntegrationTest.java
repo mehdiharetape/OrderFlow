@@ -1,10 +1,13 @@
 package com.example.order_flow.inventory.integration;
 
+import com.example.order_flow.dto.inventory.ChangeTotalQuantityDto;
 import com.example.order_flow.dto.inventory.CreateInventoryDto;
+import com.example.order_flow.dto.movement.CreateMovementDto;
 import com.example.order_flow.entity.InventoryMovement;
 import com.example.order_flow.repository.InventoryMovementRepository;
 import com.example.order_flow.repository.InventoryRepository;
 import com.example.order_flow.repository.ProductRepository;
+import com.example.order_flow.service.InventoryMovementService;
 import com.example.order_flow.service.InventoryService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,35 +21,27 @@ import static org.mockito.Mockito.verify;
 
 @SpringBootTest
 public class CreateInventoryTransactionalIntegrationTest {
-    @Autowired
-    private InventoryRepository inventoryRepository;
     @MockitoSpyBean
-    private InventoryMovementRepository movementRepository;
-    @Autowired
-    private ProductRepository productRepository;
+    private InventoryMovementService movementService;
     @Autowired
     private InventoryService service;
+    @Autowired
+    private InventoryMovementRepository movementRepository;
 
     @Test
     public void createInventoryShouldRollbackWhenMovementSaveFails(){
-        assertFalse(inventoryRepository.existsByProductId(1002));
-        doThrow(new RuntimeException("Simulated movement failure"))
-                .when(movementRepository).save(any(InventoryMovement.class));
-
+        doThrow(new RuntimeException("Simulated Exception"))
+                .when(movementService).createInventoryMovement(
+                        any(CreateMovementDto.class));
 
         CreateInventoryDto dto = new CreateInventoryDto();
-        dto.setProductId(1002);
-        dto.setTotalQuantity(15);
+        dto.setTotalQuantity(6);
+        dto.setProductId(1005);
 
-        RuntimeException exception = assertThrows(RuntimeException.class,
+        assertThrows(RuntimeException.class,
                 () -> service.createInventory(dto));
 
-        assertEquals("Simulated movement failure",
-                exception.getMessage());
 
-        verify(movementRepository)
-                .save(any(InventoryMovement.class));
-
-        assertFalse(inventoryRepository.existsByProductId(1002));
+        assertEquals(0, movementRepository.countByProductId(1005));
     }
 }

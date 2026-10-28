@@ -16,13 +16,13 @@ public class GetInventoryByIdIntegrationTests {
 
     @Test
     public void getInventoryByIdHappyFlow(){
-        Integer id = 2004;
+        Integer id = 2008;
 
         InventoryDetailResponseDto result =
                 service.getInventoryById(id);
 
         assertEquals(id, result.getInventoryId());
-        assertEquals(10, result.getAvailable());
+        assertEquals(6, result.getAvailable());
     }
 
 

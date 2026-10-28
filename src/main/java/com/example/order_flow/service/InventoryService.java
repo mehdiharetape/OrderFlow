@@ -4,11 +4,12 @@ import com.example.order_flow.dto.inventory.ChangeTotalQuantityDto;
 import com.example.order_flow.dto.inventory.CreateInventoryDto;
 import com.example.order_flow.dto.inventory.InventoryDetailResponseDto;
 import com.example.order_flow.dto.inventory.ReservationChangeDto;
+import com.example.order_flow.dto.movement.CreateMovementDto;
 import com.example.order_flow.entity.Inventory;
-import com.example.order_flow.entity.InventoryMovement;
+import com.example.order_flow.entity.Product;
+import com.example.order_flow.entity.enums.MovementReason;
 import com.example.order_flow.exceptions.*;
 import com.example.order_flow.mapper.InventoryMapper;
-import com.example.order_flow.mapper.InventoryMovementMapper;
 import com.example.order_flow.repository.InventoryMovementRepository;
 import com.example.order_flow.repository.InventoryRepository;
 import com.example.order_flow.repository.ProductRepository;
@@ -19,6 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,16 +28,16 @@ import java.util.List;
 public class InventoryService {
     private final InventoryRepository inventoryRepository;
     private final ProductRepository productRepository;
-    private final InventoryMovementRepository movementRepository;
+    private final InventoryMovementService movementService;
 
     @Autowired
     public InventoryService(InventoryRepository inventoryRepository,
                             ProductRepository productRepository,
-                            InventoryMovementRepository movementRepository)
+                            InventoryMovementService movementService)
     {
         this.inventoryRepository = inventoryRepository;
         this.productRepository = productRepository;
-        this.movementRepository = movementRepository;
+        this.movementService = movementService;
     }
 
     //create inventory
@@ -54,15 +56,22 @@ public class InventoryService {
             throw new InventoryProductExistException();
 
         Inventory inventory = InventoryMapper.createDtoToInventory(inventoryDto);
-        InventoryMovement movement =
-                InventoryMovementMapper.toInventoryMovementInitial(productId, totalQuantity);
 
         Integer inventoryId = inventoryRepository.save(inventory).getInventoryId();
-        Integer inventoryMovementId = null;
-        if (totalQuantity != 0)
-            inventoryMovementId = movementRepository.save(movement).getInventoryMovementId();
 
-        return new InventoryResult(inventoryId, inventoryMovementId);
+        Integer movementId = null;
+        if(totalQuantity != 0){
+            CreateMovementDto dto = new CreateMovementDto();
+            dto.setOrderId(null);
+            dto.setProductId(productId);
+            dto.setPhysicalChange(totalQuantity);
+            dto.setReservedChange(0);
+            dto.setCreatedAt(LocalDateTime.now());
+            dto.setReason(MovementReason.INITIAL_STOCK);
+            movementId = movementService.createInventoryMovement(dto);
+        }
+
+        return new InventoryResult(inventoryId, movementId);
     }
 
     //get inventory by id
@@ -103,12 +112,12 @@ public class InventoryService {
     //change total quantity
     @Transactional
     public InventoryResult changeTotalQuantity(
-            Integer inventoryId, ChangeTotalQuantityDto changeDto)
+            Integer productId, ChangeTotalQuantityDto changeDto)
     {
-        InventoryValidation.inventoryIdValidation(inventoryId);
+        ProductValidation.productIdValidation(productId);
 
-        Inventory inventory = inventoryRepository.findById(inventoryId)
-                .orElseThrow(InventoryNotFoundException::new);
+        Inventory inventory = inventoryRepository.findByProductId(productId)
+                .orElseThrow(InventoryNotFoundForProductException::new);
 
         int changeAmount = changeDto.getAmount();
         int totalQuantity = inventory.getTotalQuantity();
@@ -117,13 +126,18 @@ public class InventoryService {
         if(newAmount < inventory.getReservedQuantity())
             throw new InvalidQuantityChangeException();
 
-        inventoryRepository.changeTotalQuantity(inventoryId, newAmount);
-        Integer movementId = movementRepository.save(
-                InventoryMovementMapper.
-                        toInventoryMovementQuantityChange(inventory.getProductId(), changeAmount))
-                .getInventoryMovementId();
+        inventoryRepository.changeTotalQuantity(inventory.getInventoryId(), newAmount);
 
-        return new InventoryResult(inventoryId, movementId);
+        CreateMovementDto dto = new CreateMovementDto();
+        dto.setOrderId(null);
+        dto.setProductId(productId);
+        dto.setPhysicalChange(changeAmount);
+        dto.setReservedChange(0);
+        dto.setCreatedAt(LocalDateTime.now());
+        dto.setReason(MovementReason.CHANGE_TOTAL_QUANTITY);
+        Integer movementId = movementService.createInventoryMovement(dto);
+
+        return new InventoryResult(inventory.getInventoryId(), movementId);
     }
 
     //reservation
@@ -149,9 +163,14 @@ public class InventoryService {
         inventoryRepository.changeReservedQuantity(
                 inventory.getInventoryId(), newReservedQuantity);
 
-        Integer movementId = movementRepository.save(InventoryMovementMapper
-                        .toInventoryMovementReservedChange(productId, reserveAmount))
-                .getInventoryMovementId();
+        CreateMovementDto dto = new CreateMovementDto();
+        dto.setOrderId(null);
+        dto.setProductId(productId);
+        dto.setPhysicalChange(0);
+        dto.setReservedChange(reserveAmount);
+        dto.setCreatedAt(LocalDateTime.now());
+        dto.setReason(MovementReason.RESERVATION);
+        Integer movementId = movementService.createInventoryMovement(dto);
 
         return new InventoryResult(inventory.getInventoryId(), movementId);
     }
@@ -178,9 +197,14 @@ public class InventoryService {
         inventoryRepository.changeReservedQuantity(inventory.getInventoryId(),
                 newReservedQuantity);
 
-        Integer movementId = movementRepository.save(InventoryMovementMapper
-                .toInventoryMovementReservedChange(productId, -cancelAmount))
-                .getInventoryMovementId();
+        CreateMovementDto dto = new CreateMovementDto();
+        dto.setOrderId(null);
+        dto.setProductId(productId);
+        dto.setPhysicalChange(0);
+        dto.setReservedChange(-cancelAmount);
+        dto.setCreatedAt(LocalDateTime.now());
+        dto.setReason(MovementReason.CANCEL_RESERVATION);
+        Integer movementId = movementService.createInventoryMovement(dto);
 
         return new InventoryResult(inventory.getInventoryId(), movementId);
     }

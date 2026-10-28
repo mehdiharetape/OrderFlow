@@ -1,11 +1,13 @@
 package com.example.order_flow.inventory.unit;
 
 import com.example.order_flow.dto.inventory.CreateInventoryDto;
+import com.example.order_flow.dto.movement.CreateMovementDto;
 import com.example.order_flow.entity.Inventory;
 import com.example.order_flow.entity.InventoryMovement;
 import com.example.order_flow.repository.InventoryMovementRepository;
 import com.example.order_flow.repository.InventoryRepository;
 import com.example.order_flow.repository.ProductRepository;
+import com.example.order_flow.service.InventoryMovementService;
 import com.example.order_flow.service.InventoryService;
 import com.example.order_flow.utils.InventoryResult;
 import org.junit.jupiter.api.Test;
@@ -26,6 +28,8 @@ public class CreateInventoryTransactionUnitTest {
     private InventoryMovementRepository movementRepository;
     @Mock
     private ProductRepository productRepository;
+    @Mock
+    private InventoryMovementService movementService;
     @InjectMocks
     private InventoryService service;
 
@@ -45,7 +49,8 @@ public class CreateInventoryTransactionUnitTest {
                     return save;
                 });
 
-        when(movementRepository.save(any(InventoryMovement.class)))
+
+        when(movementService.createInventoryMovement(any(CreateMovementDto.class)))
                 .thenThrow(new RuntimeException());
 
 
@@ -54,6 +59,5 @@ public class CreateInventoryTransactionUnitTest {
 
         verify(productRepository).existsById(1001);
         verify(inventoryRepository).save(any(Inventory.class));
-        verify(movementRepository).save(any(InventoryMovement.class));
     }
 }

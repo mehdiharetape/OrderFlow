@@ -1,6 +1,7 @@
 package com.example.order_flow.inventory.unit;
 
 import com.example.order_flow.dto.inventory.CreateInventoryDto;
+import com.example.order_flow.dto.movement.CreateMovementDto;
 import com.example.order_flow.entity.Inventory;
 import com.example.order_flow.entity.InventoryMovement;
 import com.example.order_flow.exceptions.IllegalOrNullArgumentException;
@@ -9,6 +10,7 @@ import com.example.order_flow.exceptions.ProductNotFoundException;
 import com.example.order_flow.repository.InventoryMovementRepository;
 import com.example.order_flow.repository.InventoryRepository;
 import com.example.order_flow.repository.ProductRepository;
+import com.example.order_flow.service.InventoryMovementService;
 import com.example.order_flow.service.InventoryService;
 import com.example.order_flow.utils.InventoryResult;
 import org.junit.jupiter.api.Test;
@@ -17,6 +19,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.Optional;
+
+import static org.awaitility.Awaitility.given;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -29,6 +34,8 @@ public class CreateInventoryUnitTests {
     private InventoryMovementRepository movementRepository;
     @Mock
     private ProductRepository productRepository;
+    @Mock
+    private InventoryMovementService movementService;
     @InjectMocks
     private InventoryService service;
 
@@ -49,11 +56,8 @@ public class CreateInventoryUnitTests {
                     return save;
                 });
 
-        when(movementRepository.save(any(InventoryMovement.class)))
-                .thenAnswer(invocation -> {
-                    InventoryMovement saved = new InventoryMovement(5000);
-                    return saved;
-                });
+        when(movementService.createInventoryMovement(any(CreateMovementDto.class)))
+                .thenReturn(5000);
 
         //Act
         InventoryResult result = service.createInventory(dto);
@@ -65,7 +69,6 @@ public class CreateInventoryUnitTests {
 
         verify(productRepository).existsById(1001);
         verify(inventoryRepository).save(any(Inventory.class));
-        verify(movementRepository).save(any(InventoryMovement.class));
     }
 
     @Test //when total quantity=0
@@ -94,7 +97,6 @@ public class CreateInventoryUnitTests {
 
         verify(productRepository).existsById(1001);
         verify(inventoryRepository).save(any(Inventory.class));
-        verify(movementRepository, never()).save(any(InventoryMovement.class));
     }
 
     @Test //negative product id

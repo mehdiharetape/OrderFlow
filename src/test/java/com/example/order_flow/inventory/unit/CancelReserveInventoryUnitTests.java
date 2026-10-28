@@ -1,13 +1,14 @@
 package com.example.order_flow.inventory.unit;
 
 import com.example.order_flow.dto.inventory.ReservationChangeDto;
+import com.example.order_flow.dto.movement.CreateMovementDto;
 import com.example.order_flow.entity.Inventory;
-import com.example.order_flow.entity.InventoryMovement;
+import com.example.order_flow.entity.enums.MovementReason;
 import com.example.order_flow.exceptions.IllegalOrNullArgumentException;
 import com.example.order_flow.exceptions.InvalidReservationAmountException;
 import com.example.order_flow.exceptions.InventoryNotFoundForProductException;
-import com.example.order_flow.repository.InventoryMovementRepository;
 import com.example.order_flow.repository.InventoryRepository;
+import com.example.order_flow.service.InventoryMovementService;
 import com.example.order_flow.service.InventoryService;
 import com.example.order_flow.utils.InventoryResult;
 import org.junit.jupiter.api.Test;
@@ -16,6 +17,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -31,7 +33,7 @@ public class CancelReserveInventoryUnitTests {
     @Mock
     private InventoryRepository inventoryRepository;
     @Mock
-    private InventoryMovementRepository movementRepository;
+    private InventoryMovementService movementService;
     @InjectMocks
     private InventoryService service;
 
@@ -49,12 +51,8 @@ public class CancelReserveInventoryUnitTests {
         given(inventoryRepository.findByProductId(pid))
                 .willReturn(Optional.of(inventory));
 
-        when(movementRepository.save(any(InventoryMovement.class)))
-                .thenAnswer(invocation ->{
-                    InventoryMovement saved = invocation.getArgument(0);
-                    saved.setInventoryMovementId(5014);
-                    return saved;
-                });
+        when(movementService.createInventoryMovement(any(CreateMovementDto.class)))
+                .thenReturn(5014);
 
         //act
         InventoryResult result = service.cancelReservation(pid, dto);
@@ -66,7 +64,6 @@ public class CancelReserveInventoryUnitTests {
 
         verify(inventoryRepository).findByProductId(pid);
         verify(inventoryRepository).changeReservedQuantity(anyInt(), anyInt());
-        verify(movementRepository).save(any(InventoryMovement.class));
     }
 
     //zero or negative cancel amount
@@ -90,7 +87,6 @@ public class CancelReserveInventoryUnitTests {
 
         verify(inventoryRepository).findByProductId(pid);
         verify(inventoryRepository, never()).changeReservedQuantity(anyInt(), anyInt());
-        verify(movementRepository, never()).save(any(InventoryMovement.class));
     }
 
     @Test
@@ -113,7 +109,6 @@ public class CancelReserveInventoryUnitTests {
 
         verify(inventoryRepository).findByProductId(pid);
         verify(inventoryRepository, never()).changeReservedQuantity(anyInt(), anyInt());
-        verify(movementRepository, never()).save(any(InventoryMovement.class));
     }
 
     //invalid reservation amount
@@ -137,7 +132,6 @@ public class CancelReserveInventoryUnitTests {
 
         verify(inventoryRepository).findByProductId(pid);
         verify(inventoryRepository, never()).changeReservedQuantity(anyInt(), anyInt());
-        verify(movementRepository, never()).save(any(InventoryMovement.class));
     }
 
     //null product id
@@ -177,6 +171,5 @@ public class CancelReserveInventoryUnitTests {
         verify(inventoryRepository).findByProductId(pid);
         verify(inventoryRepository, never()).
                 changeReservedQuantity(anyInt(), anyInt());
-        verify(movementRepository, never()).save(any(InventoryMovement.class));
     }
 }

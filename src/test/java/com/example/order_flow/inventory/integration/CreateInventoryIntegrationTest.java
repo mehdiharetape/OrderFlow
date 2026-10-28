@@ -5,11 +5,11 @@ import com.example.order_flow.entity.Inventory;
 import com.example.order_flow.entity.InventoryMovement;
 import com.example.order_flow.entity.enums.MovementReason;
 import com.example.order_flow.exceptions.InventoryProductExistException;
-import com.example.order_flow.exceptions.ProductExistsException;
 import com.example.order_flow.exceptions.ProductNotFoundException;
 import com.example.order_flow.repository.InventoryMovementRepository;
 import com.example.order_flow.repository.InventoryRepository;
 import com.example.order_flow.repository.ProductRepository;
+import com.example.order_flow.service.InventoryMovementService;
 import com.example.order_flow.service.InventoryService;
 import com.example.order_flow.utils.InventoryResult;
 import org.junit.jupiter.api.Test;
@@ -20,23 +20,26 @@ import static org.junit.jupiter.api.Assertions.*;
 import java.util.Optional;
 
 @SpringBootTest
-public class CreateInventoryIntegrationTestTest {
+public class CreateInventoryIntegrationTest {
     @Autowired
     private InventoryRepository inventoryRepository;
     @Autowired
+    private ProductRepository productRepository;
+    @Autowired
     private InventoryMovementRepository movementRepository;
     @Autowired
-    private ProductRepository productRepository;
+    private InventoryMovementService movementService;
     @Autowired
     private InventoryService service;
 
     //@Test
     public void createInventoryHappyFlow(){
         CreateInventoryDto dto = new CreateInventoryDto();
-        dto.setProductId(1001);
+        dto.setProductId(1004);
         dto.setTotalQuantity(10);
 
         InventoryResult result = service.createInventory(dto);
+
         Optional<Inventory> inventory =
                 inventoryRepository.findById(result.inventory());
         Optional<InventoryMovement> movement =
@@ -56,7 +59,7 @@ public class CreateInventoryIntegrationTestTest {
     //@Test
     public void createInventoryZeroQuantityHappyFlow(){
         CreateInventoryDto dto = new CreateInventoryDto();
-        dto.setProductId(1002);
+        dto.setProductId(1005);
         dto.setTotalQuantity(0);
 
         InventoryResult result = service.createInventory(dto);
