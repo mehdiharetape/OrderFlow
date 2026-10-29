@@ -58,42 +58,15 @@ public class InventoryController {
                 .body(result);
     }
 
-    @PatchMapping("/inventory/{inventoryId}/quantity")
+    @PatchMapping("/inventory/{productId}/quantity")
     public ResponseEntity<String> changeTotalQuantity(
-            @PathVariable Integer inventoryId,
+            @PathVariable Integer productId,
             @RequestBody ChangeTotalQuantityDto dto)
     {
-        var result = inventoryService.changeTotalQuantity(inventoryId, dto);
+        var result = inventoryService.changeTotalQuantity(productId, dto);
         return ResponseEntity.status(HttpStatus.OK).
-                body("Inventory '" + inventoryId + "' changed by amount '"
+                body("Inventory with product id '" + productId + "' changed by amount '"
                 + dto.getAmount() + "' and movement '" +
                         result.inventoryMovement() + "' created.");
-    }
-
-    @PatchMapping("/inventory/{productId}/reservation")
-    public ResponseEntity<String> reservation(
-            @PathVariable Integer productId,
-            @RequestBody ReservationChangeDto reserveDto)
-    {
-
-        var result = inventoryService.reservation(productId, reserveDto);
-        return ResponseEntity.status(HttpStatus.OK)
-                .body("Product '" + productId +"' reserved with" +
-                        " amount " + reserveDto.getReserveAmount()
-                        + " - (movement : " + result.inventoryMovement() +
-                        " & inventory : " + result.inventory());
-    }
-
-    @DeleteMapping("/inventory/{productId}/reservation")
-    public ResponseEntity<String> cancelReservation(
-            @PathVariable Integer productId,
-            @RequestBody ReservationChangeDto cancelDto)
-    {
-        var result = inventoryService.cancelReservation(productId, cancelDto);
-        return ResponseEntity.status(HttpStatus.OK)
-                .body("Product '" + productId +"' cancel reserved with" +
-                        " amount " + cancelDto.getReserveAmount()
-                        + " - (movement : " + result.inventoryMovement() +
-                        " & inventory : " + result.inventory());
     }
 }

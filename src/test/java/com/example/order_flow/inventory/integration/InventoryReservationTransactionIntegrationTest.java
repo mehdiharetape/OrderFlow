@@ -34,12 +34,13 @@ public class InventoryReservationTransactionIntegrationTest {
                         any(CreateMovementDto.class));
 
         ReservationChangeDto dto = new ReservationChangeDto();
+        dto.setOrderId(3001);
         dto.setReserveAmount(2);
 
         assertThrows(RuntimeException.class,
                 () -> service.reservation(1004, dto));
 
 
-        assertEquals(1, movementRepository.countByProductId(1004));
+        assertEquals(0, movementRepository.countByProductId(1004));
     }
 }

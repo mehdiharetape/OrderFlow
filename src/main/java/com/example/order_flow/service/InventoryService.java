@@ -12,9 +12,11 @@ import com.example.order_flow.exceptions.*;
 import com.example.order_flow.mapper.InventoryMapper;
 import com.example.order_flow.repository.InventoryMovementRepository;
 import com.example.order_flow.repository.InventoryRepository;
+import com.example.order_flow.repository.OrderRepository;
 import com.example.order_flow.repository.ProductRepository;
 import com.example.order_flow.utils.InventoryResult;
 import com.example.order_flow.validation.InventoryValidation;
+import com.example.order_flow.validation.OrderValidation;
 import com.example.order_flow.validation.ProductValidation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -29,15 +31,18 @@ public class InventoryService {
     private final InventoryRepository inventoryRepository;
     private final ProductRepository productRepository;
     private final InventoryMovementService movementService;
+    private final OrderRepository orderRepository;
 
     @Autowired
     public InventoryService(InventoryRepository inventoryRepository,
                             ProductRepository productRepository,
-                            InventoryMovementService movementService)
+                            InventoryMovementService movementService,
+                            OrderRepository orderRepository)
     {
         this.inventoryRepository = inventoryRepository;
         this.productRepository = productRepository;
         this.movementService = movementService;
+        this.orderRepository = orderRepository;
     }
 
     //create inventory
@@ -140,15 +145,20 @@ public class InventoryService {
         return new InventoryResult(inventory.getInventoryId(), movementId);
     }
 
-    //reservation
+    //reservation - ****
     @Transactional
     public InventoryResult reservation(Integer productId,
                                        ReservationChangeDto reserveDto)
     {
+        Integer orderId = reserveDto.getOrderId();
         ProductValidation.productIdValidation(productId);
+        OrderValidation.orderIdValidation(orderId);
 
         Inventory inventory = inventoryRepository.findByProductId(productId)
                 .orElseThrow(InventoryNotFoundForProductException::new);
+
+        if(!orderRepository.existsById(orderId))
+            throw new OrderNotFoundException(orderId);
 
         int reserveAmount = reserveDto.getReserveAmount();
         if(reserveAmount <= 0)
@@ -164,7 +174,7 @@ public class InventoryService {
                 inventory.getInventoryId(), newReservedQuantity);
 
         CreateMovementDto dto = new CreateMovementDto();
-        dto.setOrderId(null);
+        dto.setOrderId(orderId);
         dto.setProductId(productId);
         dto.setPhysicalChange(0);
         dto.setReservedChange(reserveAmount);

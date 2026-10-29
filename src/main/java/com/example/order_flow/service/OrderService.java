@@ -78,6 +78,7 @@ public class OrderService {
 
         for (OrderItemRequestDto item : orderItems){
             var reserveDto = new ReservationChangeDto();
+            reserveDto.setOrderId(order.getOrderId());
             reserveDto.setReserveAmount(item.getQuantity());
             inventoryService.reservation(item.getProductId(), reserveDto);
         }

@@ -87,10 +87,13 @@ public class OrderCreationUnitTests {
 
         ArgumentCaptor<ReservationChangeDto> captor =
                 ArgumentCaptor.forClass(ReservationChangeDto.class);
+
         verify(inventoryService).reservation(eq(1001), captor.capture());
         assertEquals(3, captor.getValue().getReserveAmount());
+        assertEquals(3001, captor.getValue().getOrderId());
         verify(inventoryService).reservation(eq(1002), captor.capture());
         assertEquals(2, captor.getValue().getReserveAmount());
+        assertEquals(3001, captor.getValue().getOrderId());
     }
 
     //null or empty order items

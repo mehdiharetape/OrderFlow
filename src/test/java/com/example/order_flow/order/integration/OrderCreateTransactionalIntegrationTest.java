@@ -34,7 +34,7 @@ public class OrderCreateTransactionalIntegrationTest {
         oi1.setProductId(1001);
         oi1.setQuantity(3);
         OrderItemRequestDto oi2 = new OrderItemRequestDto();
-        oi2.setProductId(1002);
+        oi2.setProductId(1003);
         oi2.setQuantity(2);
 
         RuntimeException exception = assertThrows(RuntimeException.class,
