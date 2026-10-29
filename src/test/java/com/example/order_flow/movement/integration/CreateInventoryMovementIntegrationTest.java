@@ -45,7 +45,7 @@ public class CreateInventoryMovementIntegrationTest {
     }
 
     //initial stock
-    //@Test
+    @Test
     public void createInventoryMovementInitialStock(){
         CreateMovementDto dto = new CreateMovementDto();
         dto.setOrderId(null);
@@ -66,8 +66,30 @@ public class CreateInventoryMovementIntegrationTest {
         assertNull(found.get().getOrderId());
     }
 
+    //total quantity
+    @Test
+    public void changeTotalQuantityInventoryMovement(){
+        CreateMovementDto dto = new CreateMovementDto();
+        dto.setOrderId(null);
+        dto.setProductId(1005);
+        dto.setPhysicalChange(2);
+        dto.setReservedChange(0);
+        dto.setCreatedAt(LocalDateTime.now());
+        dto.setReason(MovementReason.CHANGE_TOTAL_QUANTITY);
+
+        Integer mid = movementService.createInventoryMovement(dto);
+        Optional<InventoryMovement> found = movementRepository.findById(mid);
+
+        assertNotNull(mid);
+        assertEquals(mid, found.get().getInventoryMovementId());
+        assertEquals(MovementReason.CHANGE_TOTAL_QUANTITY ,found.get().getReason());
+        assertEquals(2, found.get().getPhysicalChange());
+        assertEquals(0, found.get().getReservedChange());
+        assertNull(found.get().getOrderId());
+    }
+
     //fail null order id
-    //@Test
+    @Test
     public void failCreateInventoryMovementNullOrder(){
         CreateMovementDto dto = new CreateMovementDto();
         dto.setOrderId(null);

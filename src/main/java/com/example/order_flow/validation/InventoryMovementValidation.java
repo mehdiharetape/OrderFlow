@@ -14,7 +14,11 @@ public class InventoryMovementValidation {
         if (dto.getCreatedAt() == null)
             throw new IllegalOrNullArgumentException();
 
-        if(orderId == null && dto.getReason() != MovementReason.INITIAL_STOCK)
-            throw new IllegalOrNullArgumentException();
+        if(orderId == null) {
+            if (dto.getReason() != MovementReason.INITIAL_STOCK
+                    && dto.getReason() != MovementReason.CHANGE_TOTAL_QUANTITY){
+                throw new IllegalOrNullArgumentException();
+            }
+        }
     }
 }

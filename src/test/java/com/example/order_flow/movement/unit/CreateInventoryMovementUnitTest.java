@@ -64,8 +64,8 @@ public class CreateInventoryMovementUnitTest {
         CreateMovementDto dto = new CreateMovementDto();
         dto.setOrderId(null);
         dto.setProductId(1001);
-        dto.setPhysicalChange(0);
-        dto.setReservedChange(2);
+        dto.setPhysicalChange(2);
+        dto.setReservedChange(0);
         dto.setCreatedAt(LocalDateTime.now());
         dto.setReason(MovementReason.INITIAL_STOCK);
 
@@ -85,7 +85,34 @@ public class CreateInventoryMovementUnitTest {
         verify(orderRepository, never()).existsById(3500);
     }
 
-    //null order id for not initial stock reason
+    //create movement for change quantity without order
+    @Test
+    public void changeInventoryQuantityWithoutOrder(){
+        CreateMovementDto dto = new CreateMovementDto();
+        dto.setOrderId(null);
+        dto.setProductId(1001);
+        dto.setPhysicalChange(2);
+        dto.setReservedChange(0);
+        dto.setCreatedAt(LocalDateTime.now());
+        dto.setReason(MovementReason.CHANGE_TOTAL_QUANTITY);
+
+        when(movementRepository.save(any(InventoryMovement.class)))
+                .thenAnswer(invocation -> {
+                    InventoryMovement save = invocation.getArgument(0);
+                    save.setInventoryMovementId(5001);
+                    return save;
+                });
+
+        Integer id = movementService.createInventoryMovement(dto);
+
+        assertNotNull(id);
+        assertEquals(5001, id);
+
+        verify(movementRepository).save(any(InventoryMovement.class));
+        verify(orderRepository, never()).existsById(3500);
+    }
+
+    //null order id for not initial stock or change quantity reason
     @Test
     public void createInventoryMovementWithoutOrderAnotherReason(){
         CreateMovementDto dto = new CreateMovementDto();
