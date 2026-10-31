@@ -10,5 +10,8 @@ public interface InventoryMovementRepository
     @Query("SELECT * FROM inventory_movement WHERE product_id = :productId")
     Iterable<InventoryMovement> findMovementsByProductId(Integer productId);
 
+    @Query("SELECT * FROM inventory_movement WHERE order_id = :orderId")
+    Iterable<InventoryMovement> findMovementsByOrderId(Integer orderId);
+
     Integer countByProductId(Integer productId);
 }

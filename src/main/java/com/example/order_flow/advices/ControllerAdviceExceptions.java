@@ -98,4 +98,12 @@ public class ControllerAdviceExceptions {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(ex.getMessage());
     }
+
+    @ExceptionHandler(OrderCancelFailException.class)
+    public ResponseEntity<String> handleOrderCancelFailException(
+            OrderCancelFailException ex)
+    {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ex.getMessage());
+    }
 }

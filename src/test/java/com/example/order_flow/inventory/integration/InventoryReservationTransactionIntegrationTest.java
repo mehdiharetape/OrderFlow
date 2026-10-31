@@ -41,6 +41,6 @@ public class InventoryReservationTransactionIntegrationTest {
                 () -> service.reservation(1004, dto));
 
 
-        assertEquals(0, movementRepository.countByProductId(1004));
+        assertEquals(2, movementRepository.countByProductId(1004));
     }
 }

@@ -7,7 +7,9 @@ import com.example.order_flow.entity.enums.MovementReason;
 import com.example.order_flow.exceptions.IllegalOrNullArgumentException;
 import com.example.order_flow.exceptions.InvalidReservationAmountException;
 import com.example.order_flow.exceptions.InventoryNotFoundForProductException;
+import com.example.order_flow.exceptions.OrderNotFoundException;
 import com.example.order_flow.repository.InventoryRepository;
+import com.example.order_flow.repository.OrderRepository;
 import com.example.order_flow.service.InventoryMovementService;
 import com.example.order_flow.service.InventoryService;
 import com.example.order_flow.utils.InventoryResult;
@@ -41,6 +43,7 @@ public class CancelReserveInventoryUnitTests {
     public void cancelReserveInventoryHappyFlow(){
         Integer pid = 1001;
         ReservationChangeDto dto = new ReservationChangeDto();
+        dto.setOrderId(3001);
         dto.setReserveAmount(5);
 
         Inventory inventory = new Inventory(2009);
@@ -71,6 +74,7 @@ public class CancelReserveInventoryUnitTests {
     public void zeroCancelReserveAmountTest(){
         Integer pid = 1001;
         ReservationChangeDto dto = new ReservationChangeDto();
+        dto.setOrderId(3001);
         dto.setReserveAmount(0);
 
         Inventory inventory = new Inventory(2009);
@@ -93,6 +97,7 @@ public class CancelReserveInventoryUnitTests {
     public void negativeCancelReserveAmountTest(){
         Integer pid = 1001;
         ReservationChangeDto dto = new ReservationChangeDto();
+        dto.setOrderId(3001);
         dto.setReserveAmount(-1);
 
         Inventory inventory = new Inventory(2009);
@@ -116,6 +121,7 @@ public class CancelReserveInventoryUnitTests {
     public void invalidCancelReserveAmountTest(){
         Integer pid = 1001;
         ReservationChangeDto dto = new ReservationChangeDto();
+        dto.setOrderId(3001);
         dto.setReserveAmount(10);
 
         Inventory inventory = new Inventory(2009);
@@ -160,6 +166,7 @@ public class CancelReserveInventoryUnitTests {
     public void notFoundInventoryForProductTest(){
         Integer pid = 16000;
         ReservationChangeDto dto = new ReservationChangeDto();
+        dto.setOrderId(3001);
         dto.setReserveAmount(3);
 
         given(inventoryRepository.findByProductId(pid))

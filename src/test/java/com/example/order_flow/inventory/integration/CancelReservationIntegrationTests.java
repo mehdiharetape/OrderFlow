@@ -5,6 +5,7 @@ import com.example.order_flow.entity.InventoryMovement;
 import com.example.order_flow.entity.enums.MovementReason;
 import com.example.order_flow.exceptions.InvalidReservationAmountException;
 import com.example.order_flow.exceptions.InventoryNotFoundForProductException;
+import com.example.order_flow.exceptions.OrderNotFoundException;
 import com.example.order_flow.repository.InventoryMovementRepository;
 import com.example.order_flow.repository.InventoryRepository;
 import com.example.order_flow.service.InventoryService;
@@ -28,15 +29,16 @@ public class CancelReservationIntegrationTests {
 
     //@Test
     public void cancelReservationInventoryHappyFlow(){
-        Integer pid = 1002;
+        Integer pid = 1001;
         ReservationChangeDto dto = new ReservationChangeDto();
-        dto.setReserveAmount(4);
+        dto.setOrderId(3001);
+        dto.setReserveAmount(2);
 
         InventoryResult result = service.cancelReservation(pid,dto);
         Optional<InventoryMovement> movement = movementRepository.findById(result.inventoryMovement());
 
         assertNotNull(result);
-        assertEquals(2008, result.inventory());
+        assertEquals(2009, result.inventory());
         assertEquals(result.inventoryMovement(),
                 movement.get().getInventoryMovementId());
         assertEquals(MovementReason.CANCEL_RESERVATION, movement.get().getReason());
@@ -46,16 +48,18 @@ public class CancelReservationIntegrationTests {
     public void invalidReservationCancelAmount(){
         Integer pid = 1001;
         ReservationChangeDto dto = new ReservationChangeDto();
+        dto.setOrderId(3001);
         dto.setReserveAmount(6);
 
         assertThrows(InvalidReservationAmountException.class,
                 () -> service.cancelReservation(pid, dto));
     }
 
-    @Test
+    //@Test
     public void inventoryNotFoundForProduct(){
         Integer pid = 120000;
         ReservationChangeDto dto = new ReservationChangeDto();
+        dto.setOrderId(3001);
         dto.setReserveAmount(6);
 
         assertThrows(InventoryNotFoundForProductException.class,

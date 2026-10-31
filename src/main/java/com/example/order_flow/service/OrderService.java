@@ -5,6 +5,7 @@ import com.example.order_flow.dto.order.OrderBriefResponseDto;
 import com.example.order_flow.dto.order.OrderItemRequestDto;
 import com.example.order_flow.dto.order.OrderItemResponseDto;
 import com.example.order_flow.entity.Order;
+import com.example.order_flow.entity.OrderItem;
 import com.example.order_flow.entity.Product;
 import com.example.order_flow.entity.enums.OrderStatus;
 import com.example.order_flow.entity.enums.ProductStatus;
@@ -85,6 +86,39 @@ public class OrderService {
 
         return order;
     }
+
+    //cancel order
+    @Transactional
+    public Integer cancelOrder(Integer orderId)
+    {
+        OrderValidation.orderIdValidation(orderId);
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new OrderNotFoundException(orderId));
+
+        if(order.getStatus() != OrderStatus.PENDING_PAYMENT)
+            throw new OrderCancelFailException("can't cancel order " + orderId);
+
+        List<OrderItem> orderItems = StreamSupport
+                .stream(orderItemRepository.findAllByOrderId(orderId).
+                        spliterator(),false).toList();
+
+        if(orderItems.isEmpty())
+            throw new OrderCancelFailException("order " + orderId +" has no items");
+
+        for (OrderItem item : orderItems)
+        {
+            ReservationChangeDto changeDto = new ReservationChangeDto();
+            changeDto.setOrderId(orderId);
+            changeDto.setReserveAmount(item.getQuantity());
+            inventoryService.cancelReservation(item.getProductId(), changeDto);
+        }
+
+        orderRepository.changeOrderStatus(orderId, OrderStatus.CANCELED);
+
+        return orderId;
+    }
+
+    //expire unpaid order
 
     //get all orders **
     public List<OrderBriefResponseDto> getAllOrders(){

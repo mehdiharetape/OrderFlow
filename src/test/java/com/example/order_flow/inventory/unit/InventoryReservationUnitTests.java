@@ -32,8 +32,6 @@ public class InventoryReservationUnitTests {
     private InventoryRepository inventoryRepository;
     @Mock
     private InventoryMovementService movementService;
-    @Mock
-    private OrderRepository orderRepository;
     @InjectMocks
     private InventoryService service;
 
@@ -51,7 +49,6 @@ public class InventoryReservationUnitTests {
 
         given(inventoryRepository.findByProductId(pid)).
                 willReturn(Optional.of(inventory));
-        given(orderRepository.existsById(3001)).willReturn(true);
 
         when(movementService.createInventoryMovement(any(CreateMovementDto.class)))
                 .thenReturn(5001);
@@ -68,7 +65,6 @@ public class InventoryReservationUnitTests {
         verify(inventoryRepository).findByProductId(pid);
         verify(inventoryRepository).
                 changeReservedQuantity(anyInt(), anyInt());
-        verify(orderRepository).existsById(3001);
     }
 
     //zero or negative reservation amount
@@ -84,7 +80,6 @@ public class InventoryReservationUnitTests {
         inventory.setTotalQuantity(10);
         inventory.setReservedQuantity(3);
 
-        given(orderRepository.existsById(3001)).willReturn(true);
         given(inventoryRepository.findByProductId(pid)).
                 willReturn(Optional.of(inventory));
 
@@ -93,7 +88,6 @@ public class InventoryReservationUnitTests {
                 () -> service.reservation(pid, dto));
 
         verify(inventoryRepository).findByProductId(pid);
-        verify(orderRepository).existsById(3001);
         verify(inventoryRepository, never()).
                 changeReservedQuantity(anyInt(), anyInt());
     }
@@ -110,7 +104,6 @@ public class InventoryReservationUnitTests {
         inventory.setTotalQuantity(10);
         inventory.setReservedQuantity(3);
 
-        given(orderRepository.existsById(3001)).willReturn(true);
         given(inventoryRepository.findByProductId(pid)).
                 willReturn(Optional.of(inventory));
 
@@ -119,7 +112,6 @@ public class InventoryReservationUnitTests {
                 () -> service.reservation(pid, dto));
 
         verify(inventoryRepository).findByProductId(pid);
-        verify(orderRepository).existsById(3001);
         verify(inventoryRepository, never()).
                 changeReservedQuantity(anyInt(), anyInt());
     }
@@ -136,7 +128,6 @@ public class InventoryReservationUnitTests {
         inventory.setTotalQuantity(10);
         inventory.setReservedQuantity(3);
 
-        given(orderRepository.existsById(3001)).willReturn(true);
         given(inventoryRepository.findByProductId(pid)).
                 willReturn(Optional.of(inventory));
 
@@ -145,7 +136,6 @@ public class InventoryReservationUnitTests {
                 () -> service.reservation(pid, dto));
 
         verify(inventoryRepository).findByProductId(pid);
-        verify(orderRepository).existsById(3001);
         verify(inventoryRepository, never()).
                 changeReservedQuantity(anyInt(), anyInt());
     }
@@ -185,55 +175,6 @@ public class InventoryReservationUnitTests {
                 () -> service.reservation(pid, dto));
 
         verify(inventoryRepository).findByProductId(pid);
-        verify(orderRepository, never()).existsById(anyInt());
-        verify(inventoryRepository, never()).
-                changeReservedQuantity(anyInt(), anyInt());
-    }
-
-    //null or invalid order
-    @Test
-    public void nullOrderIdTest(){
-        Integer pid = 1001;
-        ReservationChangeDto dto = new ReservationChangeDto();
-        dto.setOrderId(null);
-        dto.setReserveAmount(3);
-
-        assertThrows(IllegalOrNullArgumentException.class,
-                () -> service.reservation(pid, dto));
-    }
-
-    @Test
-    public void invalidOrderIdTest(){
-        Integer pid = 1001;
-        ReservationChangeDto dto = new ReservationChangeDto();
-        dto.setOrderId(2999);
-        dto.setReserveAmount(3);
-
-        assertThrows(IllegalOrNullArgumentException.class,
-                () -> service.reservation(pid, dto));
-    }
-
-    //order not found
-    public void notFoundOrderTest(){
-        Integer pid = 1001;
-        ReservationChangeDto dto = new ReservationChangeDto();
-        dto.setOrderId(3500);
-        dto.setReserveAmount(3);
-
-        Inventory inventory = new Inventory(2008);
-        inventory.setProductId(pid);
-        inventory.setTotalQuantity(10);
-        inventory.setReservedQuantity(3);
-
-        given(orderRepository.existsById(3001)).willReturn(false);
-        given(inventoryRepository.findByProductId(pid)).
-                willReturn(Optional.of(inventory));
-
-        assertThrows(OrderNotFoundException.class,
-                () -> service.reservation(pid, dto));
-
-        verify(inventoryRepository).findByProductId(pid);
-        verify(orderRepository).existsById(3500);
         verify(inventoryRepository, never()).
                 changeReservedQuantity(anyInt(), anyInt());
     }

@@ -8,12 +8,14 @@ import com.example.order_flow.mapper.InventoryMovementMapper;
 import com.example.order_flow.repository.InventoryMovementRepository;
 import com.example.order_flow.repository.OrderRepository;
 import com.example.order_flow.validation.InventoryMovementValidation;
+import com.example.order_flow.validation.OrderValidation;
 import com.example.order_flow.validation.ProductValidation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.StreamSupport;
 
 @Service
 public class InventoryMovementService {
@@ -56,7 +58,8 @@ public class InventoryMovementService {
     }
 
     //get movements for a product id
-    public List<InventoryMovementResponseDto> getMovementListByProductId(Integer productId)
+    public List<InventoryMovementResponseDto> getMovementListByProductId(
+            Integer productId)
     {
         ProductValidation.productIdValidation(productId);
 
@@ -68,5 +71,16 @@ public class InventoryMovementService {
                 InventoryMovementMapper.inventoryToResponse(m)));
 
         return result;
+    }
+
+    //get movements for order id
+    public List<InventoryMovementResponseDto> getMovementListByOrderId(
+            Integer orderId)
+    {
+        OrderValidation.orderIdValidation(orderId);
+
+        return StreamSupport.stream(movementRepository
+                        .findMovementsByOrderId(orderId).spliterator(),false)
+                .map(InventoryMovementMapper::inventoryToResponse).toList();
     }
 }

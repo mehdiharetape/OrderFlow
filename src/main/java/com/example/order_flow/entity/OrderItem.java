@@ -2,7 +2,6 @@ package com.example.order_flow.entity;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Table;
-import org.springframework.data.relational.core.sql.In;
 
 import java.math.BigDecimal;
 

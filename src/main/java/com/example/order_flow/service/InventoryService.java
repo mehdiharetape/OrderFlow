@@ -6,11 +6,9 @@ import com.example.order_flow.dto.inventory.InventoryDetailResponseDto;
 import com.example.order_flow.dto.inventory.ReservationChangeDto;
 import com.example.order_flow.dto.movement.CreateMovementDto;
 import com.example.order_flow.entity.Inventory;
-import com.example.order_flow.entity.Product;
 import com.example.order_flow.entity.enums.MovementReason;
 import com.example.order_flow.exceptions.*;
 import com.example.order_flow.mapper.InventoryMapper;
-import com.example.order_flow.repository.InventoryMovementRepository;
 import com.example.order_flow.repository.InventoryRepository;
 import com.example.order_flow.repository.OrderRepository;
 import com.example.order_flow.repository.ProductRepository;
@@ -150,15 +148,10 @@ public class InventoryService {
     public InventoryResult reservation(Integer productId,
                                        ReservationChangeDto reserveDto)
     {
-        Integer orderId = reserveDto.getOrderId();
         ProductValidation.productIdValidation(productId);
-        OrderValidation.orderIdValidation(orderId);
 
         Inventory inventory = inventoryRepository.findByProductId(productId)
                 .orElseThrow(InventoryNotFoundForProductException::new);
-
-        if(!orderRepository.existsById(orderId))
-            throw new OrderNotFoundException(orderId);
 
         int reserveAmount = reserveDto.getReserveAmount();
         if(reserveAmount <= 0)
@@ -174,7 +167,7 @@ public class InventoryService {
                 inventory.getInventoryId(), newReservedQuantity);
 
         CreateMovementDto dto = new CreateMovementDto();
-        dto.setOrderId(orderId);
+        dto.setOrderId(reserveDto.getOrderId());
         dto.setProductId(productId);
         dto.setPhysicalChange(0);
         dto.setReservedChange(reserveAmount);
@@ -208,7 +201,7 @@ public class InventoryService {
                 newReservedQuantity);
 
         CreateMovementDto dto = new CreateMovementDto();
-        dto.setOrderId(null);
+        dto.setOrderId(reserveDto.getOrderId());
         dto.setProductId(productId);
         dto.setPhysicalChange(0);
         dto.setReservedChange(-cancelAmount);

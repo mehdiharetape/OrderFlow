@@ -63,14 +63,4 @@ public class InventoryReservationIntegrationTest {
                 () -> service.reservation(pi, dto));
     }
 
-    @Test
-    public void orderNotFoundTest(){
-        Integer pi = 1002;
-        ReservationChangeDto dto = new ReservationChangeDto();
-        dto.setOrderId(3500);
-        dto.setReserveAmount(20);
-
-        assertThrows(OrderNotFoundException.class,
-                () -> service.reservation(pi, dto));
-    }
 }

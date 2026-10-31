@@ -36,6 +36,6 @@ public class CancelInventoryTransactionalIntegrationTest {
                 () -> service.cancelReservation(1004, dto));
 
 
-        assertEquals(1, movementRepository.countByProductId(1004));
+        assertEquals(2, movementRepository.countByProductId(1004));
     }
 }

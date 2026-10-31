@@ -54,4 +54,13 @@ public class OrderController {
         return ResponseEntity.status(HttpStatus.FOUND)
                 .body(result);
     }
+
+    @DeleteMapping("/order/{orderId}")
+    public ResponseEntity<String> cancelOrder(
+            @PathVariable Integer orderId)
+    {
+        Integer oid = orderService.cancelOrder(orderId);
+        return ResponseEntity.status(HttpStatus.OK)
+                .body("Order '" + oid + "' canceled successfully!");
+    }
 }
