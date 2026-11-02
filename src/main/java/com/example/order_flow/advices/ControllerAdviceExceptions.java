@@ -106,4 +106,12 @@ public class ControllerAdviceExceptions {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(ex.getMessage());
     }
+
+    @ExceptionHandler(OrderExpirationFailException.class)
+    public ResponseEntity<String> handleOrderExpirationFailException(
+            OrderExpirationFailException ex)
+    {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ex.getMessage());
+    }
 }

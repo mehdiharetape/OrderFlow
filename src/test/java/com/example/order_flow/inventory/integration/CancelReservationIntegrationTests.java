@@ -29,16 +29,16 @@ public class CancelReservationIntegrationTests {
 
     //@Test
     public void cancelReservationInventoryHappyFlow(){
-        Integer pid = 1001;
+        Integer pid = 1004;
         ReservationChangeDto dto = new ReservationChangeDto();
-        dto.setOrderId(3001);
+        dto.setOrderId(3041);
         dto.setReserveAmount(2);
 
         InventoryResult result = service.cancelReservation(pid,dto);
         Optional<InventoryMovement> movement = movementRepository.findById(result.inventoryMovement());
 
         assertNotNull(result);
-        assertEquals(2009, result.inventory());
+        assertEquals(2024, result.inventory());
         assertEquals(result.inventoryMovement(),
                 movement.get().getInventoryMovementId());
         assertEquals(MovementReason.CANCEL_RESERVATION, movement.get().getReason());
@@ -46,16 +46,16 @@ public class CancelReservationIntegrationTests {
 
     //@Test
     public void invalidReservationCancelAmount(){
-        Integer pid = 1001;
+        Integer pid = 1004;
         ReservationChangeDto dto = new ReservationChangeDto();
-        dto.setOrderId(3001);
+        dto.setOrderId(3041);
         dto.setReserveAmount(6);
 
         assertThrows(InvalidReservationAmountException.class,
                 () -> service.cancelReservation(pid, dto));
     }
 
-    //@Test
+    @Test
     public void inventoryNotFoundForProduct(){
         Integer pid = 120000;
         ReservationChangeDto dto = new ReservationChangeDto();

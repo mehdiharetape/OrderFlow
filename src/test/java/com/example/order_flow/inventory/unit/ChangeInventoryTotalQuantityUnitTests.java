@@ -7,15 +7,20 @@ import com.example.order_flow.exceptions.IllegalOrNullArgumentException;
 import com.example.order_flow.exceptions.InvalidQuantityChangeException;
 import com.example.order_flow.exceptions.InventoryNotFoundForProductException;
 import com.example.order_flow.repository.InventoryRepository;
+import com.example.order_flow.repository.ProductRepository;
 import com.example.order_flow.service.InventoryMovementService;
 import com.example.order_flow.service.InventoryService;
 import com.example.order_flow.utils.InventoryResult;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -29,8 +34,20 @@ public class ChangeInventoryTotalQuantityUnitTests {
     private InventoryRepository inventoryRepository;
     @Mock
     private InventoryMovementService movementService;
-    @InjectMocks
+    @Mock
+    private ProductRepository productRepository;
+
     private InventoryService service;
+    private final Clock clock = Clock.fixed(
+            Instant.parse("2026-11-01T10:00:00Z"),
+            ZoneOffset.UTC
+    );
+
+    @BeforeEach
+    public void setUp(){
+        service = new InventoryService(inventoryRepository,
+                productRepository, movementService, clock);
+    }
 
     @Test
     public void changeInventoryTotalQuantityHappyFlow(){

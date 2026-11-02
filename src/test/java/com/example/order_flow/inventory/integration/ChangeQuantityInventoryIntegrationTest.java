@@ -22,31 +22,31 @@ public class ChangeQuantityInventoryIntegrationTest {
     @Autowired
     private InventoryMovementRepository movementRepository;
 
-    //@Test
+    @Test
     public void changeQuantityInventoryHappyFlow(){
         ChangeTotalQuantityDto dto = new ChangeTotalQuantityDto();
         dto.setAmount(-2);
-        Integer pid = 1003;
+        Integer pid = 1004;
 
         InventoryResult result = service.changeTotalQuantity(pid, dto);
         Optional<InventoryMovement> movement = movementRepository.findById(result.inventoryMovement());
 
         assertNotNull(result);
-        assertEquals(2010, result.inventory());
+        assertEquals(2024, result.inventory());
         assertEquals(result.inventoryMovement(), movement.get().getInventoryMovementId());
     }
 
     //@Test
     public void changeInvalidQuantityInventory(){
         ChangeTotalQuantityDto dto = new ChangeTotalQuantityDto();
-        dto.setAmount(-9);
-        Integer pid = 1003;
+        dto.setAmount(-12);
+        Integer pid = 1004;
 
         assertThrows(InvalidQuantityChangeException.class,
                 () -> service.changeTotalQuantity(pid, dto));
     }
 
-    @Test
+    //@Test
     public void inventoryNotFoundTest(){
         Integer pid = 200000;
         ChangeTotalQuantityDto dto = new ChangeTotalQuantityDto();

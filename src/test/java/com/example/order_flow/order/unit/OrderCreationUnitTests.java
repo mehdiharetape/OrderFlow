@@ -7,12 +7,15 @@ import com.example.order_flow.entity.Product;
 import com.example.order_flow.entity.enums.OrderStatus;
 import com.example.order_flow.entity.enums.ProductStatus;
 import com.example.order_flow.exceptions.*;
+import com.example.order_flow.properties.OrderProperties;
 import com.example.order_flow.repository.InventoryRepository;
+import com.example.order_flow.repository.OrderItemRepository;
 import com.example.order_flow.repository.OrderRepository;
 import com.example.order_flow.repository.ProductRepository;
 import com.example.order_flow.service.InventoryService;
 import com.example.order_flow.service.OrderItemService;
 import com.example.order_flow.service.OrderService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -22,6 +25,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.math.BigDecimal;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -41,11 +48,29 @@ public class OrderCreationUnitTests {
     @Mock
     private OrderItemService orderItemService;
     @Mock
+    private OrderItemRepository orderItemRepository;
+    @Mock
     private InventoryService inventoryService;
     @Mock
     private InventoryRepository inventoryRepository;
-    @InjectMocks
+
+
     private OrderService service;
+    private final Clock clock = Clock.fixed(
+            Instant.parse("2026-11-02T19:00:00Z"),
+            ZoneOffset.UTC
+    );
+
+    @BeforeEach
+    public void setUp(){
+
+        OrderProperties properties = new OrderProperties();
+        properties.setPaymentExpirationMinutes(30);
+
+        service = new OrderService(orderRepository, productRepository,
+                inventoryService, orderItemService, inventoryRepository,
+                orderItemRepository, properties ,clock);
+    }
 
     //happy flow
     @Test
@@ -80,6 +105,11 @@ public class OrderCreationUnitTests {
         assertEquals(3001, order.getOrderId());
         assertEquals(BigDecimal.valueOf(120), order.getTotalAmount());
         assertEquals(OrderStatus.PENDING_PAYMENT, order.getStatus());
+
+        assertEquals(LocalDateTime.parse("2026-11-02T19:30"),
+                order.getExpireAt());
+        assertTrue(order.getExpireAt().isAfter(order.getCreatedAt()));
+        assertEquals(order.getCreatedAt(), order.getExpireAt().minusMinutes(30));
 
         verify(orderRepository).save(any(Order.class));
         verify(orderItemService).createOrderItems(eq(3001),
@@ -282,4 +312,6 @@ public class OrderCreationUnitTests {
         verify(orderRepository, never()).save(any(Order.class));
         verify(orderItemService, never()).createOrderItems(anyInt(), anyList());
     }
+
+
 }

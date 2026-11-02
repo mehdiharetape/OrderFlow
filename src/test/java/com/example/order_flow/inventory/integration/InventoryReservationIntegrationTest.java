@@ -27,36 +27,36 @@ public class InventoryReservationIntegrationTest {
 
     //@Test
     public void reservationInventoryHappyFlow(){
-        Integer pi = 1001;
+        Integer pi = 1004;
         ReservationChangeDto dto = new ReservationChangeDto();
-        dto.setOrderId(3001);
+        dto.setOrderId(3041);
         dto.setReserveAmount(2);
 
         InventoryResult result = service.reservation(pi, dto);
         Optional<InventoryMovement> movement = movementRepository.findById(result.inventoryMovement());
 
         assertNotNull(result);
-        assertEquals(2009, result.inventory());
+        assertEquals(2024, result.inventory());
         assertEquals(result.inventoryMovement(), movement.get().getInventoryMovementId());
         assertEquals(MovementReason.RESERVATION, movement.get().getReason());
     }
 
     //@Test
     public void invalidReservationAmountTest(){
-        Integer pi = 1002;
+        Integer pi = 1004;
         ReservationChangeDto dto = new ReservationChangeDto();
-        dto.setOrderId(3018);
+        dto.setOrderId(3001);
         dto.setReserveAmount(20);
 
         assertThrows(InvalidReservationAmountException.class,
                 () -> service.reservation(pi, dto));
     }
 
-    //@Test
+    @Test
     public void inventoryNotFoundForProductTest(){
         Integer pi = 12222; //valid but not found in inventory
         ReservationChangeDto dto = new ReservationChangeDto();
-        dto.setOrderId(3001);
+        dto.setOrderId(3041);
         dto.setReserveAmount(3);
 
         assertThrows(InventoryNotFoundForProductException.class,

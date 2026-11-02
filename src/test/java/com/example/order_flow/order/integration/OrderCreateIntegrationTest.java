@@ -58,6 +58,8 @@ public class OrderCreateIntegrationTest {
         assertNotNull(order);
         assertEquals(BigDecimal.valueOf(41.37), order.getTotalAmount());
         assertEquals(OrderStatus.PENDING_PAYMENT, order.getStatus());
+        assertTrue(order.getExpireAt().isAfter(order.getCreatedAt()));
+        assertEquals(order.getCreatedAt(), order.getExpireAt().minusMinutes(30));
         //items
         assertEquals(2, orderItems.get(0).getQuantity());
         assertEquals(1003, orderItems.get(0).getProductId());
@@ -92,10 +94,10 @@ public class OrderCreateIntegrationTest {
     public void inactiveProductIntegrationTest(){
         //order items
         OrderItemRequestDto oi1 = new OrderItemRequestDto();
-        oi1.setProductId(1001);
+        oi1.setProductId(1003);
         oi1.setQuantity(3);
         OrderItemRequestDto oi2 = new OrderItemRequestDto();
-        oi2.setProductId(1002);
+        oi2.setProductId(1005);
         oi2.setQuantity(2);
 
         assertThrows(InactiveProductException.class,
@@ -107,21 +109,21 @@ public class OrderCreateIntegrationTest {
     public void insufficientInventoryIntegrationTest(){
         //order items
         OrderItemRequestDto oi1 = new OrderItemRequestDto();
-        oi1.setProductId(1001);
+        oi1.setProductId(1003);
         oi1.setQuantity(3);
         OrderItemRequestDto oi2 = new OrderItemRequestDto();
-        oi2.setProductId(1003);
-        oi2.setQuantity(10);
+        oi2.setProductId(1004);
+        oi2.setQuantity(20);
 
         assertThrows(InvalidReservationAmountException.class,
                 () -> service.createOrder(List.of(oi1, oi2)));
 
-        var i1 = inventoryService.getInventoryByProductId(1001);
-        var i2 = inventoryService.getInventoryByProductId(1003);
+        var i1 = inventoryService.getInventoryByProductId(1003);
+        var i2 = inventoryService.getInventoryByProductId(1004);
 
         //reservation amount are same(rollback)
         assertEquals(2, i1.getReservedQuantity());
-        assertEquals(2, i2.getReservedQuantity());
+        assertEquals(1, i2.getReservedQuantity());
     }
 
     //inventory save failure
@@ -132,10 +134,10 @@ public class OrderCreateIntegrationTest {
 
         //order items
         OrderItemRequestDto oi1 = new OrderItemRequestDto();
-        oi1.setProductId(1001);
+        oi1.setProductId(1003);
         oi1.setQuantity(3);
         OrderItemRequestDto oi2 = new OrderItemRequestDto();
-        oi2.setProductId(1003);
+        oi2.setProductId(1004);
         oi2.setQuantity(2);
 
         RuntimeException exception = assertThrows(RuntimeException.class,
@@ -153,7 +155,7 @@ public class OrderCreateIntegrationTest {
         oi1.setProductId(1001);
         oi1.setQuantity(3);
         OrderItemRequestDto oi2 = new OrderItemRequestDto();
-        oi2.setProductId(1005);
+        oi2.setProductId(1004);
         oi2.setQuantity(2);
 
         assertThrows(InventoryNotFoundForProductException.class,

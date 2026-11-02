@@ -30,7 +30,7 @@ public class OrderCreateOrderItemFailTransactionalIntegrationTest {
 
     @Test
     public void orderShouldRollbackWhenOrderItemSaveFailure(){
-        Integer productId1 = 1001;
+        Integer productId1 = 1003;
         Integer productId2 = 1004;
         //order items
         OrderItemRequestDto oi1 = new OrderItemRequestDto();

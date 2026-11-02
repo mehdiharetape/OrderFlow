@@ -31,7 +31,7 @@ public class OrderCreateInventoryReserveFailTransactionalTest {
 
     @Test
     public void orderShouldRollbackWhenInventoryReservationFailure(){
-        Integer productId1 = 1001;
+        Integer productId1 = 1003;
         Integer productId2 = 1004;
         //order items
         OrderItemRequestDto oi1 = new OrderItemRequestDto();

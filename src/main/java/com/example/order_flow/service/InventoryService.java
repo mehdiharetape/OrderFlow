@@ -10,16 +10,15 @@ import com.example.order_flow.entity.enums.MovementReason;
 import com.example.order_flow.exceptions.*;
 import com.example.order_flow.mapper.InventoryMapper;
 import com.example.order_flow.repository.InventoryRepository;
-import com.example.order_flow.repository.OrderRepository;
 import com.example.order_flow.repository.ProductRepository;
 import com.example.order_flow.utils.InventoryResult;
 import com.example.order_flow.validation.InventoryValidation;
-import com.example.order_flow.validation.OrderValidation;
 import com.example.order_flow.validation.ProductValidation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,18 +28,18 @@ public class InventoryService {
     private final InventoryRepository inventoryRepository;
     private final ProductRepository productRepository;
     private final InventoryMovementService movementService;
-    private final OrderRepository orderRepository;
+    private final Clock clock;
 
     @Autowired
     public InventoryService(InventoryRepository inventoryRepository,
                             ProductRepository productRepository,
                             InventoryMovementService movementService,
-                            OrderRepository orderRepository)
+                            Clock clock)
     {
         this.inventoryRepository = inventoryRepository;
         this.productRepository = productRepository;
         this.movementService = movementService;
-        this.orderRepository = orderRepository;
+        this.clock = clock;
     }
 
     //create inventory
@@ -69,7 +68,8 @@ public class InventoryService {
             dto.setProductId(productId);
             dto.setPhysicalChange(totalQuantity);
             dto.setReservedChange(0);
-            dto.setCreatedAt(LocalDateTime.now());
+            LocalDateTime createdAt = LocalDateTime.now(clock);
+            dto.setCreatedAt(createdAt);
             dto.setReason(MovementReason.INITIAL_STOCK);
             movementId = movementService.createInventoryMovement(dto);
         }
@@ -136,7 +136,8 @@ public class InventoryService {
         dto.setProductId(productId);
         dto.setPhysicalChange(changeAmount);
         dto.setReservedChange(0);
-        dto.setCreatedAt(LocalDateTime.now());
+        LocalDateTime createdAt = LocalDateTime.now(clock);
+        dto.setCreatedAt(createdAt);
         dto.setReason(MovementReason.CHANGE_TOTAL_QUANTITY);
         Integer movementId = movementService.createInventoryMovement(dto);
 
@@ -171,7 +172,8 @@ public class InventoryService {
         dto.setProductId(productId);
         dto.setPhysicalChange(0);
         dto.setReservedChange(reserveAmount);
-        dto.setCreatedAt(LocalDateTime.now());
+        LocalDateTime createdAt = LocalDateTime.now(clock);
+        dto.setCreatedAt(createdAt);
         dto.setReason(MovementReason.RESERVATION);
         Integer movementId = movementService.createInventoryMovement(dto);
 
@@ -205,7 +207,8 @@ public class InventoryService {
         dto.setProductId(productId);
         dto.setPhysicalChange(0);
         dto.setReservedChange(-cancelAmount);
-        dto.setCreatedAt(LocalDateTime.now());
+        LocalDateTime createdAt = LocalDateTime.now(clock);
+        dto.setCreatedAt(createdAt);
         dto.setReason(MovementReason.CANCEL_RESERVATION);
         Integer movementId = movementService.createInventoryMovement(dto);
 

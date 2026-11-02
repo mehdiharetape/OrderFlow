@@ -12,6 +12,7 @@ import com.example.order_flow.entity.enums.ProductStatus;
 import com.example.order_flow.exceptions.*;
 import com.example.order_flow.mapper.OrderItemMapper;
 import com.example.order_flow.mapper.OrderMapper;
+import com.example.order_flow.properties.OrderProperties;
 import com.example.order_flow.repository.InventoryRepository;
 import com.example.order_flow.repository.OrderItemRepository;
 import com.example.order_flow.repository.OrderRepository;
@@ -19,10 +20,13 @@ import com.example.order_flow.repository.ProductRepository;
 import com.example.order_flow.utils.OrderResultById;
 import com.example.order_flow.validation.OrderValidation;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.Clock;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.StreamSupport;
@@ -35,13 +39,18 @@ public class OrderService {
     private final OrderItemService orderItemService;
     private final InventoryRepository inventoryRepository;
     private final OrderItemRepository orderItemRepository;
+    private final Clock clock;
+    private OrderProperties orderProperties;
 
     @Autowired
     public OrderService(OrderRepository orderRepository,
                         ProductRepository productRepository,
                         InventoryService inventoryService,
                         OrderItemService orderItemService,
-                        InventoryRepository inventoryRepository, OrderItemRepository orderItemRepository)
+                        InventoryRepository inventoryRepository,
+                        OrderItemRepository orderItemRepository,
+                        OrderProperties orderProperties,
+                        Clock clock)
     {
         this.orderRepository = orderRepository;
         this.productRepository = productRepository;
@@ -49,6 +58,8 @@ public class OrderService {
         this.orderItemService = orderItemService;
         this.inventoryRepository = inventoryRepository;
         this.orderItemRepository = orderItemRepository;
+        this.orderProperties = orderProperties;
+        this.clock = clock;
     }
 
     //create order
@@ -73,8 +84,11 @@ public class OrderService {
                     .multiply(BigDecimal.valueOf(item.getQuantity())));
         }
 
+        LocalDateTime createdAt = LocalDateTime.now(clock);
+        LocalDateTime expireAt = createdAt.plusMinutes(
+                orderProperties.getPaymentExpirationMinutes());
         Order order = orderRepository
-                .save(OrderMapper.createInitialOrderToOrder(totalAmount));
+                .save(OrderMapper.createInitialOrderToOrder(totalAmount, createdAt, expireAt));
         orderItemService.createOrderItems(order.getOrderId(), orderItems);
 
         for (OrderItemRequestDto item : orderItems){
@@ -108,7 +122,7 @@ public class OrderService {
         for (OrderItem item : orderItems)
         {
             ReservationChangeDto changeDto = new ReservationChangeDto();
-            changeDto.setOrderId(orderId);
+            changeDto.setOrderId(item.getOrderId());
             changeDto.setReserveAmount(item.getQuantity());
             inventoryService.cancelReservation(item.getProductId(), changeDto);
         }
@@ -119,6 +133,36 @@ public class OrderService {
     }
 
     //expire unpaid order
+    @Transactional
+    public void expireOrder(Integer orderId)
+    {
+        OrderValidation.orderIdValidation(orderId);
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new OrderNotFoundException(orderId));
+
+        if(order.getStatus() != OrderStatus.PENDING_PAYMENT)
+            return;
+
+        if(LocalDateTime.now(clock).isBefore(order.getExpireAt()))
+            return;
+
+        List<OrderItem> orderItems = StreamSupport.stream(orderItemRepository
+                .findAllByOrderId(orderId).spliterator(), false).toList();
+
+        if(orderItems.isEmpty())
+            throw new OrderExpirationFailException("Order '" + orderId + "' has no items");
+
+        if(!LocalDateTime.now(clock).isBefore(order.getExpireAt())) {
+            for (OrderItem item : orderItems){
+                ReservationChangeDto dto = new ReservationChangeDto();
+                dto.setOrderId(item.getOrderId());
+                dto.setReserveAmount(item.getQuantity());
+                inventoryService.cancelReservation(item.getProductId(), dto);
+            }
+
+            orderRepository.changeOrderStatus(orderId, OrderStatus.EXPIRED);
+        }
+    }
 
     //get all orders **
     public List<OrderBriefResponseDto> getAllOrders(){

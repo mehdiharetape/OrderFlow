@@ -14,6 +14,7 @@ public class Order {
     private LocalDateTime createdAt;
     private OrderStatus status;
     private BigDecimal totalAmount;
+    private LocalDateTime expireAt;
 
     public Order(){}
 
@@ -39,6 +40,8 @@ public class Order {
         return totalAmount;
     }
 
+    public LocalDateTime getExpireAt(){return expireAt;}
+
     //setters
     public void setOrderId(Integer orderId){this.orderId = orderId;}
 
@@ -53,4 +56,6 @@ public class Order {
     public void setTotalAmount(BigDecimal totalAmount) {
         this.totalAmount = totalAmount;
     }
+
+    public void setExpireAt(LocalDateTime expireAt){this.expireAt = expireAt;}
 }

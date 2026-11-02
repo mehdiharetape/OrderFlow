@@ -88,7 +88,7 @@ public class CreateInventoryIntegrationTest {
     @Test //repetitive product id in inventory creation
     public void createRepetitiveProductInventory(){
         CreateInventoryDto dto = new CreateInventoryDto();
-        dto.setProductId(1001); //this product id already exists in inventory
+        dto.setProductId(1004); //this product id already exists in inventory
         dto.setTotalQuantity(10);
 
         assertThrows(InventoryProductExistException.class,

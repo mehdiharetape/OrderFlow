@@ -10,6 +10,7 @@ public class OrderBriefResponseDto {
     private LocalDateTime createdAt;
     private OrderStatus status;
     private BigDecimal totalAmount;
+    private LocalDateTime expireAt;
 
     //getters
     public Integer getOrderId() {
@@ -28,6 +29,8 @@ public class OrderBriefResponseDto {
         return totalAmount;
     }
 
+    public LocalDateTime getExpireAt(){return expireAt;}
+
     //setters
 
     public void setOrderId(Integer orderId) {
@@ -45,4 +48,6 @@ public class OrderBriefResponseDto {
     public void setTotalAmount(BigDecimal totalAmount) {
         this.totalAmount = totalAmount;
     }
+
+    public void setExpireAt(LocalDateTime expireAt){this.expireAt = expireAt;}
 }
