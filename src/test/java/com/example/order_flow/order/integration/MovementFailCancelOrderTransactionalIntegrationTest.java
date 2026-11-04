@@ -27,8 +27,6 @@ public class MovementFailCancelOrderTransactionalIntegrationTest {
     private InventoryMovementRepository movementRepository;
     @Autowired
     private OrderRepository orderRepository;
-    @Autowired
-    private InventoryService inventoryService;
     @MockitoSpyBean
     private InventoryMovementService movementService;
 

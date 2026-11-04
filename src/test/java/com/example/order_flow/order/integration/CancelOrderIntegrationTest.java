@@ -45,18 +45,6 @@ public class CancelOrderIntegrationTest {
         assertEquals(OrderStatus.PAID, order.get().getStatus());
     }
 
-    //empty order items
-    //@Test
-    public void emptyOrderItemListCancelTest(){
-        Integer orderId = 3019;
-
-        assertThrows(OrderCancelFailException.class,
-                () -> orderService.cancelOrder(orderId));
-
-        Optional<Order> order = orderRepository.findById(orderId);
-        assertEquals(OrderStatus.PENDING_PAYMENT, order.get().getStatus());
-    }
-
     //order not found
     @Test
     public void orderNotFoundCancelOrderTest(){

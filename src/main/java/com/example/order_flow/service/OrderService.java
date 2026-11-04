@@ -116,9 +116,6 @@ public class OrderService {
                 .stream(orderItemRepository.findAllByOrderId(orderId).
                         spliterator(),false).toList();
 
-        if(orderItems.isEmpty())
-            throw new OrderCancelFailException("order " + orderId +" has no items");
-
         for (OrderItem item : orderItems)
         {
             ReservationChangeDto changeDto = new ReservationChangeDto();
@@ -149,9 +146,8 @@ public class OrderService {
         List<OrderItem> orderItems = StreamSupport.stream(orderItemRepository
                 .findAllByOrderId(orderId).spliterator(), false).toList();
 
-        if(orderItems.isEmpty())
-            throw new OrderExpirationFailException("Order '" + orderId + "' has no items");
 
+        //expire if now >= expireDate
         if(!LocalDateTime.now(clock).isBefore(order.getExpireAt())) {
             for (OrderItem item : orderItems){
                 ReservationChangeDto dto = new ReservationChangeDto();
@@ -164,7 +160,7 @@ public class OrderService {
         }
     }
 
-    //get all orders **
+    //get all orders
     public List<OrderBriefResponseDto> getAllOrders(){
         Iterable<Order> orders = orderRepository.findAll();
 
@@ -174,7 +170,7 @@ public class OrderService {
         return result;
     }
 
-    //get orders by order id + order item **
+    //get orders by order id + order item
     public OrderResultById getOrderDetailById(Integer orderId)
     {
         OrderValidation.orderIdValidation(orderId);

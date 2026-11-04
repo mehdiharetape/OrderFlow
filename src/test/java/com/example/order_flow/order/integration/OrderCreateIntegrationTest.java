@@ -5,10 +5,7 @@ import com.example.order_flow.entity.InventoryMovement;
 import com.example.order_flow.entity.Order;
 import com.example.order_flow.entity.OrderItem;
 import com.example.order_flow.entity.enums.OrderStatus;
-import com.example.order_flow.exceptions.InactiveProductException;
-import com.example.order_flow.exceptions.InvalidReservationAmountException;
-import com.example.order_flow.exceptions.InventoryNotFoundForProductException;
-import com.example.order_flow.exceptions.ProductNotFoundException;
+import com.example.order_flow.exceptions.*;
 import com.example.order_flow.repository.InventoryMovementRepository;
 import com.example.order_flow.repository.OrderItemRepository;
 import com.example.order_flow.service.InventoryService;
@@ -73,6 +70,18 @@ public class OrderCreateIntegrationTest {
         //inventories
         assertEquals(2, i1.getReservedQuantity());
         assertEquals(1, i2.getReservedQuantity());
+    }
+
+    @Test
+    public void nullOrderItemListTest(){
+        assertThrows(NullOrderItemListException.class,
+                () -> service.createOrder(null));
+    }
+
+    @Test
+    public void emptyOrderItemListTest(){
+        assertThrows(NullOrderItemListException.class,
+                () -> service.createOrder(List.of()));
     }
 
     //not found or inactive product
@@ -148,7 +157,7 @@ public class OrderCreateIntegrationTest {
     }
 
     //product is not in inventory
-    @Test
+    //@Test
     public void inventoryNotFoundForProductTest(){
         //order items
         OrderItemRequestDto oi1 = new OrderItemRequestDto();

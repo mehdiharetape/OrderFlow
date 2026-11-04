@@ -101,27 +101,6 @@ public class CancelOrderUnitTests {
                 .changeOrderStatus(anyInt(),any(OrderStatus.class));
     }
 
-    //empty order item
-    @Test
-    public void emptyOrderItemListTest(){
-        Integer orderId = 3001;
-        Order order = new Order(orderId);
-        order.setStatus(OrderStatus.PENDING_PAYMENT);
-
-        given(orderRepository.findById(orderId)).willReturn(Optional.of(order));
-        given(itemRepository.findAllByOrderId(orderId)).willReturn(List.of());
-
-        assertThrows(OrderCancelFailException.class,
-                () -> orderService.cancelOrder(orderId));
-
-        verify(orderRepository).findById(orderId);
-        verify(itemRepository).findAllByOrderId(orderId);
-        verify(inventoryService, never()).cancelReservation(anyInt(),
-                any(ReservationChangeDto.class));
-        verify(orderRepository, never())
-                .changeOrderStatus(anyInt(),any(OrderStatus.class));
-    }
-
     //order not found
     @Test
     public void orderNotFoundTest(){

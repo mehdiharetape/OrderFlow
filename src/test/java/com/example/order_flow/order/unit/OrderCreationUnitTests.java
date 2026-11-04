@@ -54,7 +54,6 @@ public class OrderCreationUnitTests {
     @Mock
     private InventoryRepository inventoryRepository;
 
-
     private OrderService service;
     private final Clock clock = Clock.fixed(
             Instant.parse("2026-11-02T19:00:00Z"),
@@ -62,8 +61,7 @@ public class OrderCreationUnitTests {
     );
 
     @BeforeEach
-    public void setUp(){
-
+    void setUp(){
         OrderProperties properties = new OrderProperties();
         properties.setPaymentExpirationMinutes(30);
 
