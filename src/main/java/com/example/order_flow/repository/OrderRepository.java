@@ -15,10 +15,11 @@ public interface OrderRepository
     Iterable<Order> findAllByStatus(OrderStatus status);
 
     @Query("SELECT order_id FROM `order` WHERE status = 'PENDING_PAYMENT' " +
-            " AND expire_at <= CURRENT_TIMESTAMP")
+            " AND expire_at <= CURRENT_TIMESTAMP;")
     List<Integer> findAllExpiredOrder();
 
     @Modifying
-    @Query("UPDATE `order` SET status = :orderStatus WHERE order_id = :orderId")
-    void changeOrderStatus(Integer orderId, OrderStatus orderStatus);
+    @Query("UPDATE `order` SET status = :orderStatus WHERE order_id = :orderId AND" +
+            " status = 'PENDING_PAYMENT';")
+    int changeOrderStatus(Integer orderId, OrderStatus orderStatus);
 }

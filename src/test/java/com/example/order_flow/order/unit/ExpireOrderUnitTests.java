@@ -5,6 +5,7 @@ import com.example.order_flow.entity.Order;
 import com.example.order_flow.entity.OrderItem;
 import com.example.order_flow.entity.enums.OrderStatus;
 import com.example.order_flow.exceptions.IllegalOrNullArgumentException;
+import com.example.order_flow.exceptions.OrderExpirationFailException;
 import com.example.order_flow.exceptions.OrderNotFoundException;
 import com.example.order_flow.properties.OrderProperties;
 import com.example.order_flow.repository.InventoryRepository;
@@ -32,8 +33,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class ExpireOrderUnitTests {
@@ -89,6 +89,8 @@ public class ExpireOrderUnitTests {
 
         given(orderRepository.findById(orderId)).willReturn(Optional.of(order));
         given(orderItemRepository.findAllByOrderId(orderId)).willReturn(List.of(oi1, oi2));
+        when(orderRepository.changeOrderStatus(orderId, OrderStatus.EXPIRED))
+                .thenReturn(1);
 
         //act
         service.expireOrder(orderId);
@@ -109,6 +111,45 @@ public class ExpireOrderUnitTests {
         verify(inventoryService).cancelReservation(eq(1002), captor.capture());
         assertEquals(1, captor.getValue().getReserveAmount());
         assertEquals(orderId, captor.getValue().getOrderId());
+
+        verify(orderRepository).changeOrderStatus(orderId, OrderStatus.EXPIRED);
+    }
+
+    @Test
+    public void expireOrderDateFailWhenUpdateTest(){
+        Integer orderId = 3001;
+        //order
+        Order order = new Order(orderId);
+        order.setStatus(OrderStatus.PENDING_PAYMENT);
+        order.setCreatedAt(LocalDateTime.parse("2026-11-03T12:00"));
+        order.setExpireAt(LocalDateTime.parse("2026-11-03T12:30"));
+        //order items
+        OrderItem oi1 = new OrderItem(4001);
+        oi1.setOrderId(orderId);
+        oi1.setProductId(1001);
+        oi1.setQuantity(2);
+        oi1.setUnitPrice(BigDecimal.valueOf(50));
+
+        OrderItem oi2 = new OrderItem(4002);
+        oi2.setOrderId(orderId);
+        oi2.setProductId(1002);
+        oi2.setQuantity(1);
+        oi2.setUnitPrice(BigDecimal.valueOf(70));
+
+        given(orderRepository.findById(orderId)).willReturn(Optional.of(order));
+        given(orderItemRepository.findAllByOrderId(orderId)).willReturn(List.of(oi1, oi2));
+        when(orderRepository.changeOrderStatus(orderId, OrderStatus.EXPIRED))
+                .thenReturn(0);
+
+        //act
+        assertThrows(OrderExpirationFailException.class,
+                () -> service.expireOrder(orderId));
+
+        //assert
+        assertTrue(LocalDateTime.now().isAfter(order.getExpireAt()));
+
+        verify(orderRepository).findById(orderId);
+        verify(orderItemRepository).findAllByOrderId(orderId);
 
         verify(orderRepository).changeOrderStatus(orderId, OrderStatus.EXPIRED);
     }

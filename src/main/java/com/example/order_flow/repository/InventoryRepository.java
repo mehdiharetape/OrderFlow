@@ -17,10 +17,10 @@ public interface InventoryRepository
     @Modifying
     @Query("UPDATE inventory SET total_quantity = :newQuantity" +
             " WHERE inventory_id = :inventoryId")
-    void changeTotalQuantity(Integer inventoryId, Integer newQuantity);
+    int changeTotalQuantity(Integer inventoryId, Integer newQuantity);
 
     @Modifying
     @Query("UPDATE inventory SET reserved_quantity = :newReservedQuantity" +
             " WHERE inventory_id = :inventoryId")
-    void changeReservedQuantity(Integer inventoryId, Integer newReservedQuantity);
+    int changeReservedQuantity(Integer inventoryId, Integer newReservedQuantity);
 }

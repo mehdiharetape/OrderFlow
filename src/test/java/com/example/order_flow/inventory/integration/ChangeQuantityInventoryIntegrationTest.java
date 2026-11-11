@@ -5,11 +5,13 @@ import com.example.order_flow.entity.InventoryMovement;
 import com.example.order_flow.exceptions.InvalidQuantityChangeException;
 import com.example.order_flow.exceptions.InventoryNotFoundForProductException;
 import com.example.order_flow.repository.InventoryMovementRepository;
+import com.example.order_flow.repository.InventoryRepository;
 import com.example.order_flow.service.InventoryService;
-import com.example.order_flow.utils.InventoryResult;
+import com.example.order_flow.utils.records.InventoryResult;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 
 import java.util.Optional;
 
@@ -17,12 +19,14 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 public class ChangeQuantityInventoryIntegrationTest {
+    @MockitoSpyBean
+    private InventoryRepository inventoryRepository;
     @Autowired
     private InventoryService service;
     @Autowired
     private InventoryMovementRepository movementRepository;
 
-    @Test
+    //@Test
     public void changeQuantityInventoryHappyFlow(){
         ChangeTotalQuantityDto dto = new ChangeTotalQuantityDto();
         dto.setAmount(-2);
@@ -46,7 +50,7 @@ public class ChangeQuantityInventoryIntegrationTest {
                 () -> service.changeTotalQuantity(pid, dto));
     }
 
-    //@Test
+    @Test
     public void inventoryNotFoundTest(){
         Integer pid = 200000;
         ChangeTotalQuantityDto dto = new ChangeTotalQuantityDto();

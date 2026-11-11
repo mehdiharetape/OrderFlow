@@ -12,11 +12,10 @@ import com.example.order_flow.repository.InventoryRepository;
 import com.example.order_flow.repository.ProductRepository;
 import com.example.order_flow.service.InventoryMovementService;
 import com.example.order_flow.service.InventoryService;
-import com.example.order_flow.utils.InventoryResult;
+import com.example.order_flow.utils.records.InventoryResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 

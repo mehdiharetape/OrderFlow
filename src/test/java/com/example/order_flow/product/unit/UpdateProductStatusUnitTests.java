@@ -4,6 +4,7 @@ import com.example.order_flow.dto.product.UpdateProductStatusDto;
 import com.example.order_flow.entity.enums.ProductStatus;
 import com.example.order_flow.exceptions.IllegalOrNullArgumentException;
 import com.example.order_flow.exceptions.ProductNotFoundException;
+import com.example.order_flow.exceptions.UpdateProductFailException;
 import com.example.order_flow.repository.ProductRepository;
 import com.example.order_flow.service.ProductService;
 import org.junit.jupiter.api.Test;
@@ -30,8 +31,27 @@ public class UpdateProductStatusUnitTests {
 
         when(productRepository.existsById(id)).
                 thenReturn(true);
+        when(productRepository.updateProductStatus(id, statusDto.getStatus()))
+                .thenReturn(1);
 
         productService.updateProductStatus(id, statusDto);
+
+        verify(productRepository).updateProductStatus(id, statusDto.getStatus());
+    }
+
+    @Test
+    public void updateProductStatusFailTest(){
+        Integer id = 1001;
+        UpdateProductStatusDto statusDto = new UpdateProductStatusDto();
+        statusDto.setStatus(ProductStatus.ACTIVE);
+
+        when(productRepository.existsById(id)).
+                thenReturn(true);
+        when(productRepository.updateProductStatus(id, statusDto.getStatus()))
+                .thenReturn(0);
+
+        assertThrows(UpdateProductFailException.class,
+                () -> productService.updateProductStatus(id, statusDto));
 
         verify(productRepository).updateProductStatus(id, statusDto.getStatus());
     }

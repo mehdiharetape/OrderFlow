@@ -17,10 +17,9 @@ import com.example.order_flow.repository.InventoryRepository;
 import com.example.order_flow.repository.OrderItemRepository;
 import com.example.order_flow.repository.OrderRepository;
 import com.example.order_flow.repository.ProductRepository;
-import com.example.order_flow.utils.OrderResultById;
+import com.example.order_flow.utils.records.OrderResultById;
 import com.example.order_flow.validation.OrderValidation;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -124,7 +123,9 @@ public class OrderService {
             inventoryService.cancelReservation(item.getProductId(), changeDto);
         }
 
-        orderRepository.changeOrderStatus(orderId, OrderStatus.CANCELED);
+        int changeResult = orderRepository.changeOrderStatus(orderId, OrderStatus.CANCELED);
+        if(changeResult != 1)
+            throw new OrderCancelFailException("Can't cancel order at this moment!");
 
         return orderId;
     }
@@ -156,7 +157,9 @@ public class OrderService {
                 inventoryService.cancelReservation(item.getProductId(), dto);
             }
 
-            orderRepository.changeOrderStatus(orderId, OrderStatus.EXPIRED);
+            int changeResult = orderRepository.changeOrderStatus(orderId, OrderStatus.EXPIRED);
+            if(changeResult != 1)
+                throw new OrderExpirationFailException("Can't expire order at this moment!");
         }
     }
 

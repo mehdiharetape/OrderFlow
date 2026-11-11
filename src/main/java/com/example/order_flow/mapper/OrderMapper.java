@@ -6,19 +6,10 @@ import com.example.order_flow.entity.enums.OrderStatus;
 import org.springframework.beans.factory.annotation.Value;
 
 import java.math.BigDecimal;
-import java.time.Clock;
 import java.time.LocalDateTime;
 
 public class OrderMapper
 {
-    private static Clock clock;
-
-    public OrderMapper(Clock clock){
-        this.clock = clock;
-    }
-
-    @Value("${order.payment-expiration-minutes}")
-    private static Integer expireMinute;
 
     public static Order createInitialOrderToOrder(BigDecimal totalAmount,
                                                   LocalDateTime createdAt, LocalDateTime expireAt)

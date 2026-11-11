@@ -114,4 +114,42 @@ public class ControllerAdviceExceptions {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(ex.getMessage());
     }
+
+    @ExceptionHandler(PayOrderFailException.class)
+    public ResponseEntity<String> handlePayOrderFailException(
+            PayOrderFailException ex)
+    {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ex.getMessage());
+    }
+
+    @ExceptionHandler(PaymentNotFoundException.class)
+    public ResponseEntity<String> handlePaymentNotFoundException(
+            PaymentNotFoundException ex)
+    {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ex.getMessage());
+    }
+
+    @ExceptionHandler(InventoryFailException.class)
+    public ResponseEntity<String> handleInventoryFailException(
+            InventoryFailException ex)
+    {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ex.getMessage());
+    }
+
+    @ExceptionHandler(UpdateProductFailException.class)
+    public ResponseEntity<String> handleUpdateProductFailException(
+            UpdateProductFailException ex)
+    {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ex.getMessage());
+    }
+
+    @ExceptionHandler(RefundException.class)
+    public ResponseEntity<String> handeRefundException(RefundException ex){
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ex.getMessage());
+    }
 }

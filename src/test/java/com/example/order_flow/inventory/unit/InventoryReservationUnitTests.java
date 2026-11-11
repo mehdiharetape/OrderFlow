@@ -3,25 +3,23 @@ package com.example.order_flow.inventory.unit;
 import com.example.order_flow.dto.inventory.ReservationChangeDto;
 import com.example.order_flow.dto.movement.CreateMovementDto;
 import com.example.order_flow.entity.Inventory;
-import com.example.order_flow.exceptions.IllegalOrNullArgumentException;
-import com.example.order_flow.exceptions.InvalidReservationAmountException;
-import com.example.order_flow.exceptions.InventoryNotFoundForProductException;
-import com.example.order_flow.exceptions.OrderNotFoundException;
+import com.example.order_flow.entity.enums.MovementReason;
+import com.example.order_flow.exceptions.*;
 import com.example.order_flow.repository.InventoryRepository;
-import com.example.order_flow.repository.OrderRepository;
 import com.example.order_flow.repository.ProductRepository;
 import com.example.order_flow.service.InventoryMovementService;
 import com.example.order_flow.service.InventoryService;
-import com.example.order_flow.utils.InventoryResult;
+import com.example.order_flow.utils.records.InventoryResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.Clock;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Optional;
 
@@ -66,9 +64,10 @@ public class InventoryReservationUnitTests {
 
         given(inventoryRepository.findByProductId(pid)).
                 willReturn(Optional.of(inventory));
-
         when(movementService.createInventoryMovement(any(CreateMovementDto.class)))
                 .thenReturn(5001);
+        when(inventoryRepository.changeReservedQuantity(2008, 6))
+                .thenReturn(1);
 
         //act
         InventoryResult result = service.reservation(pid, dto);
@@ -82,6 +81,47 @@ public class InventoryReservationUnitTests {
         verify(inventoryRepository).findByProductId(pid);
         verify(inventoryRepository).
                 changeReservedQuantity(anyInt(), anyInt());
+
+        ArgumentCaptor<CreateMovementDto> captor =
+                ArgumentCaptor.forClass(CreateMovementDto.class);
+
+        verify(movementService).createInventoryMovement(captor.capture());
+        assertEquals(3001, captor.getValue().getOrderId());
+        assertEquals(pid, captor.getValue().getProductId());
+        assertEquals(0, captor.getValue().getPhysicalChange());
+        assertEquals(3, captor.getValue().getReservedChange());
+        assertEquals(LocalDateTime.now(clock), captor.getValue().getCreatedAt());
+        assertEquals(MovementReason.RESERVATION, captor.getValue().getReason());
+    }
+
+    //when raw not update in db
+    @Test
+    public void updateInventoryFailTest(){
+        Integer pid = 1001;
+        ReservationChangeDto dto = new ReservationChangeDto();
+        dto.setOrderId(3001);
+        dto.setReserveAmount(3);
+
+        Inventory inventory = new Inventory(2008);
+        inventory.setProductId(pid);
+        inventory.setTotalQuantity(10);
+        inventory.setReservedQuantity(3);
+
+        given(inventoryRepository.findByProductId(pid)).
+                willReturn(Optional.of(inventory));
+        when(inventoryRepository.changeReservedQuantity(2008, 6))
+                .thenReturn(0);
+
+        //act
+        assertThrows(InventoryFailException.class,
+                () -> service.reservation(pid, dto));
+
+
+        verify(inventoryRepository).findByProductId(pid);
+        verify(inventoryRepository).
+                changeReservedQuantity(anyInt(), anyInt());
+        verify(movementService, never()).createInventoryMovement(
+                any(CreateMovementDto.class));
     }
 
     //zero or negative reservation amount

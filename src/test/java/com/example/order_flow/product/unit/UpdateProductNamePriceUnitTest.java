@@ -3,6 +3,7 @@ package com.example.order_flow.product.unit;
 import com.example.order_flow.dto.product.UpdateProductNamePriceDto;
 import com.example.order_flow.exceptions.IllegalOrNullArgumentException;
 import com.example.order_flow.exceptions.ProductNotFoundException;
+import com.example.order_flow.exceptions.UpdateProductFailException;
 import com.example.order_flow.repository.ProductRepository;
 import com.example.order_flow.service.ProductService;
 import org.junit.jupiter.api.Test;
@@ -32,6 +33,11 @@ public class UpdateProductNamePriceUnitTest {
 
         when(productRepository.existsById(productId))
                 .thenReturn(true);
+        when(productRepository.existsByName(dto.getName()))
+                .thenReturn(false);
+        when(productRepository.updateProductNamePrice(productId, dto.getName(),
+                BigDecimal.valueOf(dto.getNewPrice())))
+                .thenReturn(1);
 
         productService.updateNamePrice(productId, dto);
 
@@ -40,6 +46,29 @@ public class UpdateProductNamePriceUnitTest {
                BigDecimal.valueOf(dto.getNewPrice()));
     }
 
+    //raw not updated
+    @Test
+    public void productNotUpdate(){
+        Integer productId = 1001;
+        UpdateProductNamePriceDto dto = new UpdateProductNamePriceDto();
+        dto.setName("milk");
+        dto.setNewtPrice(14.56);
+
+        when(productRepository.existsById(productId))
+                .thenReturn(true);
+        when(productRepository.existsByName(dto.getName()))
+                .thenReturn(false);
+        when(productRepository.updateProductNamePrice(productId, dto.getName(),
+                BigDecimal.valueOf(dto.getNewPrice())))
+                .thenReturn(0);
+
+        assertThrows(UpdateProductFailException.class,
+                () -> productService.updateNamePrice(productId, dto));
+
+        verify(productRepository).existsById(productId);
+        verify(productRepository).updateProductNamePrice(productId, dto.getName(),
+                BigDecimal.valueOf(dto.getNewPrice()));
+    }
 
     //invalid id
     @Test

@@ -17,9 +17,9 @@ public interface ProductRepository extends
     @Modifying
     @Query("UPDATE product SET name = :name, current_price = :price" +
             " WHERE product_id = :productId")
-    void updateProductNamePrice(Integer productId, String name, BigDecimal price);
+    int updateProductNamePrice(Integer productId, String name, BigDecimal price);
 
     @Modifying
     @Query("UPDATE product SET status = :newStatus WHERE product_id = :productId")
-    void updateProductStatus(Integer productId, ProductStatus newStatus);
+    int updateProductStatus(Integer productId, ProductStatus newStatus);
 }

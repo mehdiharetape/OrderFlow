@@ -58,6 +58,8 @@ public class CancelOrderUnitTests {
 
         given(orderRepository.findById(orderId)).willReturn(Optional.of(order));
         given(itemRepository.findAllByOrderId(orderId)).willReturn(List.of(oi1, oi2));
+        when(orderRepository.changeOrderStatus(orderId, OrderStatus.CANCELED))
+                .thenReturn(1);
 
         Integer result = orderService.cancelOrder(orderId);
 
@@ -73,6 +75,38 @@ public class CancelOrderUnitTests {
 
         assertEquals(orderId, changes.get(1).getOrderId());
         assertEquals(3, changes.get(1).getReserveAmount());
+
+        verify(inventoryService).cancelReservation(eq(1001),
+                any(ReservationChangeDto.class));
+        verify(inventoryService).cancelReservation(eq(1002),
+                any(ReservationChangeDto.class));
+        verify(orderRepository).changeOrderStatus(orderId, OrderStatus.CANCELED);
+    }
+
+    @Test
+    public void orderCancelUpdateFailException()
+    {
+        //arrange
+        Integer orderId = 3001;
+        Order order = new Order(orderId);
+        order.setStatus(OrderStatus.PENDING_PAYMENT);
+
+        OrderItem oi1 = new OrderItem(4001);
+        oi1.setOrderId(orderId);
+        oi1.setProductId(1001);
+        oi1.setQuantity(2);
+        OrderItem oi2 = new OrderItem(4002);
+        oi2.setOrderId(orderId);
+        oi2.setProductId(1002);
+        oi2.setQuantity(3);
+
+        given(orderRepository.findById(orderId)).willReturn(Optional.of(order));
+        given(itemRepository.findAllByOrderId(orderId)).willReturn(List.of(oi1, oi2));
+        when(orderRepository.changeOrderStatus(orderId, OrderStatus.CANCELED))
+                .thenReturn(0);
+
+        assertThrows(OrderCancelFailException.class,
+                () -> orderService.cancelOrder(orderId));
 
         verify(inventoryService).cancelReservation(eq(1001),
                 any(ReservationChangeDto.class));

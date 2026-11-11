@@ -3,23 +3,26 @@ package com.example.order_flow.inventory.unit;
 import com.example.order_flow.dto.inventory.ChangeTotalQuantityDto;
 import com.example.order_flow.dto.movement.CreateMovementDto;
 import com.example.order_flow.entity.Inventory;
+import com.example.order_flow.entity.enums.MovementReason;
 import com.example.order_flow.exceptions.IllegalOrNullArgumentException;
 import com.example.order_flow.exceptions.InvalidQuantityChangeException;
+import com.example.order_flow.exceptions.InventoryFailException;
 import com.example.order_flow.exceptions.InventoryNotFoundForProductException;
 import com.example.order_flow.repository.InventoryRepository;
 import com.example.order_flow.repository.ProductRepository;
 import com.example.order_flow.service.InventoryMovementService;
 import com.example.order_flow.service.InventoryService;
-import com.example.order_flow.utils.InventoryResult;
+import com.example.order_flow.utils.records.InventoryResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.Clock;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Optional;
 
@@ -52,13 +55,13 @@ public class ChangeInventoryTotalQuantityUnitTests {
     @Test
     public void changeInventoryTotalQuantityHappyFlow(){
         Integer pid = 1001;
+        Integer iid = 2001;
         Integer amount = -5;
 
         ChangeTotalQuantityDto dto = new ChangeTotalQuantityDto();
         dto.setAmount(amount);
 
-        Inventory inventory = new Inventory();
-        inventory.setInventoryId(2001);
+        Inventory inventory = new Inventory(iid);
         inventory.setProductId(pid);
         inventory.setTotalQuantity(10);
         inventory.setReservedQuantity(3);
@@ -68,6 +71,8 @@ public class ChangeInventoryTotalQuantityUnitTests {
 
         when(movementService.createInventoryMovement(any(CreateMovementDto.class)))
                 .thenReturn(5001);
+        when(inventoryRepository.changeTotalQuantity(iid, 5))
+                .thenReturn(1);
 
         //act
         InventoryResult result = service.changeTotalQuantity(pid, dto);
@@ -77,6 +82,46 @@ public class ChangeInventoryTotalQuantityUnitTests {
 
 
         verify(inventoryRepository).changeTotalQuantity(2001, 5);
+        ArgumentCaptor<CreateMovementDto> captor =
+                ArgumentCaptor.forClass(CreateMovementDto.class);
+
+        verify(movementService).createInventoryMovement(captor.capture());
+        assertNull(captor.getValue().getOrderId());
+        assertEquals(pid, captor.getValue().getProductId());
+        assertEquals(amount, captor.getValue().getPhysicalChange());
+        assertEquals(0, captor.getValue().getReservedChange());
+        assertEquals(LocalDateTime.now(clock), captor.getValue().getCreatedAt());
+        assertEquals(MovementReason.CHANGE_TOTAL_QUANTITY,
+                captor.getValue().getReason());
+    }
+
+    @Test //total quantity not changed
+    public void totalQuantityNotUpdateTest(){
+        Integer pid = 1001;
+        Integer iid = 2001;
+        Integer amount = -5;
+
+        ChangeTotalQuantityDto dto = new ChangeTotalQuantityDto();
+        dto.setAmount(amount);
+
+        Inventory inventory = new Inventory(iid);
+        inventory.setProductId(pid);
+        inventory.setTotalQuantity(10);
+        inventory.setReservedQuantity(3);
+
+        given(inventoryRepository.findByProductId(pid)).
+                willReturn(Optional.of(inventory));
+        
+        when(inventoryRepository.changeTotalQuantity(iid, 5))
+                .thenReturn(0);
+
+        //act
+        assertThrows(InventoryFailException.class,
+                () -> service.changeTotalQuantity(pid, dto));
+
+        verify(inventoryRepository).changeTotalQuantity(2001, 5);
+        verify(movementService, never())
+                .createInventoryMovement(any(CreateMovementDto.class));
     }
 
     @Test //invalid amount

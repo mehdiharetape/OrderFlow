@@ -11,7 +11,7 @@ import com.example.order_flow.exceptions.*;
 import com.example.order_flow.mapper.InventoryMapper;
 import com.example.order_flow.repository.InventoryRepository;
 import com.example.order_flow.repository.ProductRepository;
-import com.example.order_flow.utils.InventoryResult;
+import com.example.order_flow.utils.records.InventoryResult;
 import com.example.order_flow.validation.InventoryValidation;
 import com.example.order_flow.validation.ProductValidation;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -129,7 +129,10 @@ public class InventoryService {
         if(newAmount < inventory.getReservedQuantity())
             throw new InvalidQuantityChangeException();
 
-        inventoryRepository.changeTotalQuantity(inventory.getInventoryId(), newAmount);
+        int changeResult = inventoryRepository
+                .changeTotalQuantity(inventory.getInventoryId(), newAmount);
+        if(changeResult != 1)
+            throw new InventoryFailException("Can't change total quantity at this moment!");
 
         CreateMovementDto dto = new CreateMovementDto();
         dto.setOrderId(null);
@@ -164,8 +167,10 @@ public class InventoryService {
             throw new InvalidReservationAmountException();
 
         int newReservedQuantity = reserved + reserveAmount;
-        inventoryRepository.changeReservedQuantity(
+        int changeResult = inventoryRepository.changeReservedQuantity(
                 inventory.getInventoryId(), newReservedQuantity);
+        if(changeResult != 1)
+            throw new InventoryFailException("Can't reserve at this moment!");
 
         CreateMovementDto dto = new CreateMovementDto();
         dto.setOrderId(reserveDto.getOrderId());
@@ -199,8 +204,10 @@ public class InventoryService {
             throw new InvalidReservationAmountException();
 
         int newReservedQuantity = reserved - cancelAmount;
-        inventoryRepository.changeReservedQuantity(inventory.getInventoryId(),
+        int changeResult = inventoryRepository.changeReservedQuantity(inventory.getInventoryId(),
                 newReservedQuantity);
+        if(changeResult != 1)
+            throw new InventoryFailException("Can't cancel reservation at this moment!");
 
         CreateMovementDto dto = new CreateMovementDto();
         dto.setOrderId(reserveDto.getOrderId());

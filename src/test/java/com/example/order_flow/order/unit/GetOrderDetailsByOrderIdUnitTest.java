@@ -8,7 +8,7 @@ import com.example.order_flow.exceptions.OrderNotFoundException;
 import com.example.order_flow.repository.OrderItemRepository;
 import com.example.order_flow.repository.OrderRepository;
 import com.example.order_flow.service.OrderService;
-import com.example.order_flow.utils.OrderResultById;
+import com.example.order_flow.utils.records.OrderResultById;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

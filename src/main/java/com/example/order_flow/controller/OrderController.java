@@ -5,7 +5,7 @@ import com.example.order_flow.dto.order.OrderItemRequestDto;
 import com.example.order_flow.entity.Order;
 import com.example.order_flow.entity.enums.OrderStatus;
 import com.example.order_flow.service.OrderService;
-import com.example.order_flow.utils.OrderResultById;
+import com.example.order_flow.utils.records.OrderResultById;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

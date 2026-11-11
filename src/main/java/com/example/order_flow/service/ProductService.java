@@ -5,9 +5,9 @@ import com.example.order_flow.dto.product.ProductDetailResponseDto;
 import com.example.order_flow.dto.product.UpdateProductNamePriceDto;
 import com.example.order_flow.dto.product.UpdateProductStatusDto;
 import com.example.order_flow.entity.Product;
-import com.example.order_flow.exceptions.IllegalOrNullArgumentException;
 import com.example.order_flow.exceptions.ProductExistsException;
 import com.example.order_flow.exceptions.ProductNotFoundException;
+import com.example.order_flow.exceptions.UpdateProductFailException;
 import com.example.order_flow.mapper.ProductMapper;
 import com.example.order_flow.repository.ProductRepository;
 import com.example.order_flow.validation.ProductValidation;
@@ -75,8 +75,10 @@ public class ProductService {
         if(productRepository.existsByName(updateDto.getName()))
             throw new ProductExistsException();
 
-        productRepository.updateProductNamePrice(productId, updateDto.getName(),
+        int changeResult = productRepository.updateProductNamePrice(productId, updateDto.getName(),
                 BigDecimal.valueOf(updateDto.getNewPrice()));
+        if(changeResult != 1)
+            throw new UpdateProductFailException("Can't update product at this moment!");
     }
 
     //update product status
@@ -89,6 +91,9 @@ public class ProductService {
         if(!productRepository.existsById(productId))
             throw new ProductNotFoundException();
 
-        productRepository.updateProductStatus(productId, updateDto.getStatus());
+        int changeResult = productRepository
+                .updateProductStatus(productId, updateDto.getStatus());
+        if(changeResult != 1)
+            throw new UpdateProductFailException("Can't update product at this moment!");
     }
 }

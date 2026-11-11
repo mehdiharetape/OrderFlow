@@ -1,4 +1,4 @@
-package com.example.order_flow.utils;
+package com.example.order_flow.utils.records;
 
 import com.example.order_flow.dto.order.OrderBriefResponseDto;
 import com.example.order_flow.dto.order.OrderItemResponseDto;
